@@ -1,6 +1,7 @@
 using UnityEngine;
-using UnityEngine.UI; // สำหรับ Slider
-using TMPro; // สำหรับ TextMeshPro
+using UnityEngine.UI;   // สำหรับ Slider
+using TMPro;           // สำหรับ TextMeshPro
+using System.Collections;
 
 public class Monster : MonoBehaviour
 {
@@ -9,18 +10,20 @@ public class Monster : MonoBehaviour
     public float currentHealth;
 
     [Header("UI References")]
-    public Slider healthBar;      // ลาก Slider มาใส่
-    public TextMeshProUGUI hpText; // ลาก TextMeshPro มาใส่
+    public Slider healthBar;        // ลาก Slider มาใส่
+    public TextMeshProUGUI hpText;  // ลาก TextMeshPro มาใส่
 
-    // เก็บ Reference ของ GameManager
     private GameManager gameManager;
+    private Vector3 originalScale;
 
-    void Start()
+    private void Awake()
     {
-        // หา GameManager ในฉากเตรียมไว้
-        gameManager = FindFirstObjectByType<GameManager>();
-        
-        // รีเซ็ตเลือดตอนเกิด
+        gameManager   = FindObjectOfType<GameManager>();
+        originalScale = transform.localScale;
+    }
+
+    private void OnEnable()
+    {
         ResetMonster();
     }
 
@@ -28,50 +31,77 @@ public class Monster : MonoBehaviour
     {
         currentHealth = maxHealth;
         UpdateUI();
-        gameObject.SetActive(true); // เปิดตัวมอนสเตอร์
+        transform.localScale = originalScale;
+        gameObject.SetActive(true);
     }
 
     public void TakeDamage(float damage)
     {
         currentHealth -= damage;
-        
+        if (currentHealth < 0f) currentHealth = 0f;
+
         // เอฟเฟกต์ตัวเด้งนิดนึงตอนโดนตี (Juice)
-        transform.localScale = Vector3.one * 0.9f; 
-        Invoke("ResetScale", 0.1f);
+        StopAllCoroutines();
+        StartCoroutine(HitFeedback());
 
         UpdateUI();
 
-        if (currentHealth <= 0)
+        if (currentHealth <= 0f)
         {
             Die();
         }
     }
 
-    void ResetScale()
+    private IEnumerator HitFeedback()
     {
-        transform.localScale = Vector3.one;
+        float duration = 0.1f;
+        float t = 0f;
+        Vector3 small = originalScale * 0.9f;
+
+        // scale down
+        while (t < duration)
+        {
+            t += Time.deltaTime;
+            float a = t / duration;
+            transform.localScale = Vector3.Lerp(originalScale, small, a);
+            yield return null;
+        }
+
+        t = 0f;
+        // scale back
+        while (t < duration)
+        {
+            t += Time.deltaTime;
+            float a = t / duration;
+            transform.localScale = Vector3.Lerp(small, originalScale, a);
+            yield return null;
+        }
+
+        transform.localScale = originalScale;
     }
 
-    void UpdateUI()
+    private void UpdateUI()
     {
-        // อัปเดตหลอดเลือด
         if (healthBar != null)
         {
             healthBar.maxValue = maxHealth;
             healthBar.value = currentHealth;
         }
 
-        // อัปเดตตัวเลข
         if (hpText != null)
         {
-            hpText.text = $"{Mathf.Ceil(currentHealth)} / {maxHealth}";
+            hpText.text = $"{Mathf.Ceil(currentHealth)} / {Mathf.Ceil(maxHealth)}";
         }
     }
 
-    void Die()
+    private void Die()
     {
         // แจ้ง GameManager ว่ามอนสเตอร์ตายแล้ว
-        gameManager.OnMonsterDied();
+        if (gameManager != null)
+        {
+            gameManager.OnMonsterDied();
+        }
+
         gameObject.SetActive(false); // ซ่อนมอนสเตอร์ชั่วคราว
     }
 }
