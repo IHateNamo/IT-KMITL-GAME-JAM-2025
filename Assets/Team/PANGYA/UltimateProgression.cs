@@ -36,10 +36,9 @@ public class UltimateProgression : MonoBehaviour
         currentClicks++;
         Debug.Log($"UltimateProgression: Click {currentClicks}/{clicksToUlt}");
 
-        // === DEBUG: bar full ===
         if (currentClicks >= clicksToUlt)
         {
-            Debug.Log("UltimateProgression: ULT BAR FULLY CHARGED!");   // <<<
+            Debug.Log("UltimateProgression: ULT BAR FULLY CHARGED!");
             ActivateUltimate();
             currentClicks = 0;
         }

@@ -14,7 +14,7 @@ public class UltimateSkill : MonoBehaviour
     public LayerMask slashHitLayers = ~0;
     [Tooltip("ทำดาเมจกี่ % ของเลือดแม็กซ์ต่อการโดนหนึ่งครั้ง")]
     [Range(0f, 1f)]
-    public float damagePercentOfMaxHP = 0.5f; // 50%
+    public float damagePercentOfMaxHP = 0.6f;   // 60% of max HP
 
     [Header("Visuals & Cutscene (optional)")]
     public Animator playerAnimator;
@@ -25,7 +25,7 @@ public class UltimateSkill : MonoBehaviour
 
     private bool isActive;          // อยู่ในโหมดอัลติไหม
     private bool isDragging;        // ตอนนี้กำลังลากอยู่ไหม
-    private Vector2 lastSlashPos;   // จุดก่อนหน้าในการคำนวณ segment
+    private Vector2 lastSlashPos;   // จุดก่อนหน้าสำหรับ segment
     private float timer;
 
     private int _ultTriggerHash;
@@ -41,12 +41,12 @@ public class UltimateSkill : MonoBehaviour
 
         _ultTriggerHash = Animator.StringToHash(ultTriggerName);
 
-        // ไม่ต้องให้ Update ทำงานจนกว่าจะเข้าโหมดอัลติ
+        // ปิดไว้ก่อน จนกว่าจะเริ่มอัลติ
         enabled = false;
     }
 
     /// <summary>
-    /// ถูกเรียกจาก UltimateProgression เมื่อเกจเต็ม
+    /// เรียกจาก UltimateProgression เมื่อเกจเต็ม
     /// </summary>
     public void StartUltimateDuration()
     {
@@ -71,7 +71,7 @@ public class UltimateSkill : MonoBehaviour
         if (!isActive || mainCamera == null)
             return;
 
-        // นับเวลาจบอัลติ
+        // หมดเวลาอัลติ
         timer -= Time.deltaTime;
         if (timer <= 0f)
         {
@@ -83,25 +83,23 @@ public class UltimateSkill : MonoBehaviour
     }
 
     /// <summary>
-    /// Fruit-Ninja Style:
-    /// - กดเมาส์ซ้ายค้าง + ลาก = สร้างเส้นต่อๆ กันทีละ segment
-    /// - ทุก segment จะ LinecastAll ไปโดน Monster ในทางผ่าน
+    /// Fruit Ninja style:
+    /// - กดเมาส์ซ้ายค้าง + ลาก = ทำ segment slash ต่อเนื่อง
     /// </summary>
     private void HandleSlashInput()
     {
-        // เริ่มลาก (เริ่ม stroke ใหม่)
+        // เริ่ม stroke ใหม่
         if (Input.GetMouseButtonDown(0))
         {
             lastSlashPos = mainCamera.ScreenToWorldPoint(Input.mousePosition);
             isDragging = true;
         }
-        // ระหว่างลาก (ทุกเฟรมที่เมาส์ยังถูกกดอยู่)
+        // ระหว่างลาก
         else if (isDragging && Input.GetMouseButton(0))
         {
             Vector2 currentPos = mainCamera.ScreenToWorldPoint(Input.mousePosition);
             float dist = Vector2.Distance(lastSlashPos, currentPos);
 
-            // ถ้าขยับไกลพอแล้ว ค่อยสร้าง segment ใหม่
             if (dist >= minSlashSegmentDistance)
             {
                 PerformSlash(lastSlashPos, currentPos);
@@ -137,7 +135,7 @@ public class UltimateSkill : MonoBehaviour
     private void EndUltimate()
     {
         isActive = false;
-        enabled = false;
+        enabled  = false;
         isDragging = false;
 
         Debug.Log("UltimateSkill: END ULT mode");
