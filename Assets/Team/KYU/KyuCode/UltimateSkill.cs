@@ -4,13 +4,17 @@ using UnityEngine.Playables;
 public class UltimateSkill : MonoBehaviour
 {
     [Header("Duration")]
+    [Tooltip("ระยะเวลาที่อยู่ในโหมดอัลติ (วินาที)")]
     public float ultDuration = 3f;
 
     [Header("Slash Settings")]
-    public float minSlashDistance = 0.5f;
+    [Tooltip("ระยะขั้นต่ำของ segment ต่อครั้ง (ยิ่งเล็กยิ่งถี่และลื่น)")]
+    public float minSlashSegmentDistance = 0.15f;
+    [Tooltip("เลเยอร์ที่อัลติจะโดน (ส่วนใหญ่ใช้กับมอนสเตอร์)")]
     public LayerMask slashHitLayers = ~0;
+    [Tooltip("ทำดาเมจกี่ % ของเลือดแม็กซ์ต่อการโดนหนึ่งครั้ง")]
     [Range(0f, 1f)]
-    public float damagePercentOfMaxHP = 0.5f;
+    public float damagePercentOfMaxHP = 0.5f; // 50%
 
     [Header("Visuals & Cutscene (optional)")]
     public Animator playerAnimator;
@@ -18,10 +22,12 @@ public class UltimateSkill : MonoBehaviour
     public PlayableDirector ultTimeline;
 
     private Camera mainCamera;
-    private bool isActive;
-    private bool isDragging;
-    private Vector2 dragStartWorld;
+
+    private bool isActive;          // อยู่ในโหมดอัลติไหม
+    private bool isDragging;        // ตอนนี้กำลังลากอยู่ไหม
+    private Vector2 lastSlashPos;   // จุดก่อนหน้าในการคำนวณ segment
     private float timer;
+
     private int _ultTriggerHash;
 
     private void Awake()
@@ -35,17 +41,20 @@ public class UltimateSkill : MonoBehaviour
 
         _ultTriggerHash = Animator.StringToHash(ultTriggerName);
 
-        enabled = false; // off until ult starts
+        // ไม่ต้องให้ Update ทำงานจนกว่าจะเข้าโหมดอัลติ
+        enabled = false;
     }
 
+    /// <summary>
+    /// ถูกเรียกจาก UltimateProgression เมื่อเกจเต็ม
+    /// </summary>
     public void StartUltimateDuration()
     {
         isActive = true;
         timer = ultDuration;
         enabled = true;
 
-        // === DEBUG: ult used ===
-        Debug.Log($"UltimateSkill: ULT USED! Entering ult mode for {ultDuration} seconds.");  // <<<
+        Debug.Log($"UltimateSkill: ULT USED! Entering ult mode for {ultDuration} seconds.");
 
         if (playerAnimator != null)
             playerAnimator.SetTrigger(_ultTriggerHash);
@@ -62,6 +71,7 @@ public class UltimateSkill : MonoBehaviour
         if (!isActive || mainCamera == null)
             return;
 
+        // นับเวลาจบอัลติ
         timer -= Time.deltaTime;
         if (timer <= 0f)
         {
@@ -72,23 +82,36 @@ public class UltimateSkill : MonoBehaviour
         HandleSlashInput();
     }
 
+    /// <summary>
+    /// Fruit-Ninja Style:
+    /// - กดเมาส์ซ้ายค้าง + ลาก = สร้างเส้นต่อๆ กันทีละ segment
+    /// - ทุก segment จะ LinecastAll ไปโดน Monster ในทางผ่าน
+    /// </summary>
     private void HandleSlashInput()
     {
+        // เริ่มลาก (เริ่ม stroke ใหม่)
         if (Input.GetMouseButtonDown(0))
         {
-            dragStartWorld = mainCamera.ScreenToWorldPoint(Input.mousePosition);
+            lastSlashPos = mainCamera.ScreenToWorldPoint(Input.mousePosition);
             isDragging = true;
         }
+        // ระหว่างลาก (ทุกเฟรมที่เมาส์ยังถูกกดอยู่)
+        else if (isDragging && Input.GetMouseButton(0))
+        {
+            Vector2 currentPos = mainCamera.ScreenToWorldPoint(Input.mousePosition);
+            float dist = Vector2.Distance(lastSlashPos, currentPos);
+
+            // ถ้าขยับไกลพอแล้ว ค่อยสร้าง segment ใหม่
+            if (dist >= minSlashSegmentDistance)
+            {
+                PerformSlash(lastSlashPos, currentPos);
+                lastSlashPos = currentPos;
+            }
+        }
+        // ปล่อยเมาส์ = จบ stroke
         else if (isDragging && Input.GetMouseButtonUp(0))
         {
-            Vector2 dragEndWorld = mainCamera.ScreenToWorldPoint(Input.mousePosition);
             isDragging = false;
-
-            float distance = Vector2.Distance(dragStartWorld, dragEndWorld);
-            if (distance >= minSlashDistance)
-            {
-                PerformSlash(dragStartWorld, dragEndWorld);
-            }
         }
     }
 
@@ -115,6 +138,8 @@ public class UltimateSkill : MonoBehaviour
     {
         isActive = false;
         enabled = false;
+        isDragging = false;
+
         Debug.Log("UltimateSkill: END ULT mode");
     }
 }
