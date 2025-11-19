@@ -9,12 +9,14 @@ public class UltimateSkill : MonoBehaviour
 
     [Header("Slash Settings")]
     [Tooltip("ระยะขั้นต่ำของ segment ต่อครั้ง (ยิ่งเล็กยิ่งถี่และลื่น)")]
-    public float minSlashSegmentDistance = 0.15f;
+    public float minSlashSegmentDistance = 0.25f;
+
     [Tooltip("เลเยอร์ที่อัลติจะโดน (ส่วนใหญ่ใช้กับมอนสเตอร์)")]
     public LayerMask slashHitLayers = ~0;
-    [Tooltip("ทำดาเมจกี่ % ของเลือดแม็กซ์ต่อการโดนหนึ่งครั้ง")]
+
+    [Tooltip("ทำดาเมจกี่ % ของเลือดสูงสุดต่อการโดนหนึ่งครั้ง")]
     [Range(0f, 1f)]
-    public float damagePercentOfMaxHP = 0.6f;   // 60% of max HP
+    public float damagePercentOfMaxHP = 0.01f;   // 1% of MAX HP per hit
 
     [Header("Visuals & Cutscene (optional)")]
     public Animator playerAnimator;
@@ -85,6 +87,7 @@ public class UltimateSkill : MonoBehaviour
     /// <summary>
     /// Fruit Ninja style:
     /// - กดเมาส์ซ้ายค้าง + ลาก = ทำ segment slash ต่อเนื่อง
+    /// - แต่ละ segment สามารถตีโดนมอนสเตอร์เดิมซ้ำได้ (multi-hit)
     /// </summary>
     private void HandleSlashInput()
     {
@@ -122,11 +125,11 @@ public class UltimateSkill : MonoBehaviour
             if (hit.collider == null) continue;
 
             Monster monster = hit.collider.GetComponent<Monster>();
-            if (monster != null)
-            {
-                float damage = monster.maxHealth * damagePercentOfMaxHP;
-                monster.TakeDamage(damage);
-            }
+            if (monster == null) continue;
+
+            // ดาเมจ = % ของ "เลือดสูงสุด" ทุกครั้งที่โดน
+            float damage = monster.maxHealth * damagePercentOfMaxHP;
+            monster.TakeDamage(damage);
         }
 
         Debug.Log($"UltimateSkill: SLASH {start} -> {end}");
@@ -134,8 +137,8 @@ public class UltimateSkill : MonoBehaviour
 
     private void EndUltimate()
     {
-        isActive = false;
-        enabled  = false;
+        isActive  = false;
+        enabled   = false;
         isDragging = false;
 
         Debug.Log("UltimateSkill: END ULT mode");
