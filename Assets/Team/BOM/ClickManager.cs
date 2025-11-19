@@ -2,16 +2,23 @@ using UnityEngine;
 
 public class ClickManager : MonoBehaviour
 {
-    public float clickDamage = 10f; // ดาเมจต่อการคลิก
-    public LayerMask monsterLayer;  // กำหนด Layer ให้มอนสเตอร์
+    public float clickDamage = 10f;      // ดาเมจต่อการคลิก
+    public LayerMask monsterLayer;       // กำหนด Layer ให้มอนสเตอร์
 
-    [Header("Optional: Player Attack Animation")]
-    [SerializeField] private Animator playerAnimator;
-    private static readonly int AttackParam = Animator.StringToHash("Attack");
+    private Camera mainCam;              // cache กล้องหลัก
+
+    private void Awake()
+    {
+        mainCam = Camera.main;
+
+        if (mainCam == null)
+        {
+            Debug.LogError("ClickManager: ไม่เจอ Camera ที่ Tag = MainCamera ในฉาก!");
+        }
+    }
 
     void Update()
     {
-        // ตรวจจับการกดเมาส์ซ้าย หรือ นิ้วแตะหน้าจอ
         if (Input.GetMouseButtonDown(0))
         {
             DetectClick();
@@ -20,32 +27,36 @@ public class ClickManager : MonoBehaviour
 
     private void DetectClick()
     {
-        // ยิง Raycast จากตำแหน่งเมาส์ ไปในโลกเกม
-        Vector2 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        // ถ้ายังไม่มีกล้องก็ไม่ต้องทำอะไร
+        if (mainCam == null)
+        {
+            Debug.LogError("ClickManager: mainCam เป็น null (เช็ค Tag MainCamera ด้วย)");
+            return;
+        }
+
+        // แปลงตำแหน่งเมาส์มาเป็นตำแหน่งในโลกเกม
+        Vector2 mousePos = mainCam.ScreenToWorldPoint(Input.mousePosition);
+
+        // ยิง Raycast เฉพาะ Layer ของมอนสเตอร์
         RaycastHit2D hit = Physics2D.Raycast(mousePos, Vector2.zero, Mathf.Infinity, monsterLayer);
 
-        if (hit.collider != null)
+        if (hit.collider == null)
         {
-            // ถ้าชนกับอะไรที่มีสคริปต์ Monster
-            Monster monster = hit.collider.GetComponent<Monster>();
-            if (monster != null)
-            {
-                monster.TakeDamage(clickDamage);
-
-                // เติมเกจอัลติ
-                if (PlayerCombatAndUlt.Instance != null)
-                {
-                    PlayerCombatAndUlt.Instance.OnSuccessfulHit(clickDamage);
-                }
-
-                // เล่นอนิเมชันตีธรรมดา
-                if (playerAnimator != null)
-                {
-                    playerAnimator.SetTrigger(AttackParam);
-                }
-
-                Debug.Log("Hit Monster!");
-            }
+            // กดโดนที่ว่าง ๆ
+            // Debug.Log("ClickManager: ไม่โดนอะไร");
+            return;
         }
+
+        // ถ้าชนกับอะไรที่มีสคริปต์ Monster
+        Monster monster = hit.collider.GetComponent<Monster>();
+        if (monster == null)
+        {
+            Debug.Log("ClickManager: โดน " + hit.collider.name + " แต่ไม่มีคอมโพเนนต์ Monster");
+            return;
+        }
+
+        // โดนมอนสเตอร์จริง ๆ
+        monster.TakeDamage(clickDamage);
+        Debug.Log("Hit Monster! " + hit.collider.name);
     }
 }
