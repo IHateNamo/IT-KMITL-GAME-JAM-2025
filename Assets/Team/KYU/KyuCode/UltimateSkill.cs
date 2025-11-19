@@ -1,51 +1,120 @@
 using UnityEngine;
-using System.Collections.Generic;
+using UnityEngine.Playables;
 
 public class UltimateSkill : MonoBehaviour
 {
-    public float sampleDistance = 0.05f; 
-    private Vector3 lastPos;
-    private bool isDragging = false;
+    [Header("Duration")]
+    public float ultDuration = 3f;
 
-    void Update()
+    [Header("Slash Settings")]
+    public float minSlashDistance = 0.5f;
+    public LayerMask slashHitLayers = ~0;
+    [Range(0f, 1f)]
+    public float damagePercentOfMaxHP = 0.5f;
+
+    [Header("Visuals & Cutscene (optional)")]
+    public Animator playerAnimator;
+    public string ultTriggerName = "Ult";
+    public PlayableDirector ultTimeline;
+
+    private Camera mainCamera;
+    private bool isActive;
+    private bool isDragging;
+    private Vector2 dragStartWorld;
+    private float timer;
+    private int _ultTriggerHash;
+
+    private void Awake()
+    {
+        mainCamera = Camera.main;
+        if (mainCamera == null)
+            mainCamera = Object.FindFirstObjectByType<Camera>();
+
+        if (mainCamera == null)
+            Debug.LogError("UltimateSkill: no Camera in scene");
+
+        _ultTriggerHash = Animator.StringToHash(ultTriggerName);
+
+        enabled = false; // off until ult starts
+    }
+
+    public void StartUltimateDuration()
+    {
+        isActive = true;
+        timer = ultDuration;
+        enabled = true;
+
+        // === DEBUG: ult used ===
+        Debug.Log($"UltimateSkill: ULT USED! Entering ult mode for {ultDuration} seconds.");  // <<<
+
+        if (playerAnimator != null)
+            playerAnimator.SetTrigger(_ultTriggerHash);
+
+        if (ultTimeline != null)
+        {
+            ultTimeline.time = 0;
+            ultTimeline.Play();
+        }
+    }
+
+    private void Update()
+    {
+        if (!isActive || mainCamera == null)
+            return;
+
+        timer -= Time.deltaTime;
+        if (timer <= 0f)
+        {
+            EndUltimate();
+            return;
+        }
+
+        HandleSlashInput();
+    }
+
+    private void HandleSlashInput()
     {
         if (Input.GetMouseButtonDown(0))
         {
+            dragStartWorld = mainCamera.ScreenToWorldPoint(Input.mousePosition);
             isDragging = true;
-            lastPos = GetMouseWorld();
         }
-        else if (Input.GetMouseButtonUp(0))
+        else if (isDragging && Input.GetMouseButtonUp(0))
         {
+            Vector2 dragEndWorld = mainCamera.ScreenToWorldPoint(Input.mousePosition);
             isDragging = false;
+
+            float distance = Vector2.Distance(dragStartWorld, dragEndWorld);
+            if (distance >= minSlashDistance)
+            {
+                PerformSlash(dragStartWorld, dragEndWorld);
+            }
+        }
+    }
+
+    private void PerformSlash(Vector2 start, Vector2 end)
+    {
+        RaycastHit2D[] hits = Physics2D.LinecastAll(start, end, slashHitLayers);
+
+        foreach (RaycastHit2D hit in hits)
+        {
+            if (hit.collider == null) continue;
+
+            Monster monster = hit.collider.GetComponent<Monster>();
+            if (monster != null)
+            {
+                float damage = monster.maxHealth * damagePercentOfMaxHP;
+                monster.TakeDamage(damage);
+            }
         }
 
-        if (isDragging)
-        {
-            Vector3 cur = GetMouseWorld();
+        Debug.Log($"UltimateSkill: SLASH {start} -> {end}");
+    }
 
-            float dist = Vector3.Distance(lastPos, cur);
-            if (dist > 0f)
-            {
-                // แบ่งเป็นช่วง ๆ เพื่อเช็ค linecast ระหว่างจุด
-                int steps = Mathf.CeilToInt(dist / sampleDistance);
-                for (int i = 0; i < steps; i++)
-                {
-                    Vector3 a = Vector3.Lerp(lastPos, cur, (float)i / steps);
-                    Vector3 b = Vector3.Lerp(lastPos, cur, (float)(i + 1) / steps);
-
-                    RaycastHit2D hit = Physics2D.Linecast(a, b);
-                    if (hit.collider != null && hit.collider.CompareTag("Enemy"))
-                    {
-                        Debug.Log("Hit enemy: " + hit.collider.name);
-                }
-
-                lastPos = cur;
-            }
-        }}}
-
-    private Vector3 GetMouseWorld()
+    private void EndUltimate()
     {
-        Vector3 p = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-        p.z = 0;
-        return p;
-    }}
+        isActive = false;
+        enabled = false;
+        Debug.Log("UltimateSkill: END ULT mode");
+    }
+}

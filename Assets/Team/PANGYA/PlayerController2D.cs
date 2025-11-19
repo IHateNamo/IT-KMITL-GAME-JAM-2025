@@ -13,7 +13,6 @@ public class PlayerController2D : MonoBehaviour
     private Collider2D col;
     private Animator anim;
 
-    // Animator parameters (no Blend Tree)
     private static readonly int IsGroundedParam = Animator.StringToHash("IsGrounded");
 
     private void Awake()
@@ -22,34 +21,28 @@ public class PlayerController2D : MonoBehaviour
         col  = GetComponent<Collider2D>();
         anim = GetComponent<Animator>();
 
-        // Static avatar – no gravity, no rotation
-        rb.gravityScale   = 0f;
+        rb.gravityScale   = 0f;   // player doesn’t move
         rb.freezeRotation = true;
     }
 
     private void FixedUpdate()
     {
-        // Absolutely no movement: player stays in place
+        // NO MOVEMENT – click action only
         rb.linearVelocity = Vector2.zero;
 
-        // Optional: still know if feet touch something for animation
         bool grounded = IsGrounded();
         anim.SetBool(IsGroundedParam, grounded);
     }
 
-    // Ground check from collider height + offset + raycast
     private bool IsGrounded()
     {
         if (col == null) return false;
 
         Bounds b = col.bounds;
-
-        // feet position = bottom of collider with small extra offset down
         Vector2 feetPos = new Vector2(b.center.x, b.min.y - groundRayExtraHeight);
 
-        // LayerMask ~0 = everything; just ignore our own collider
+        // ~0 = everything, ignore our own collider manually
         RaycastHit2D hit = Physics2D.Raycast(feetPos, Vector2.down, groundRayDistance, ~0);
-
         return hit.collider != null && hit.collider != col;
     }
 }

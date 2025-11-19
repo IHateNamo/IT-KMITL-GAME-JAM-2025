@@ -1,17 +1,17 @@
 using UnityEngine;
-using UnityEngine.UI;   // สำหรับ Slider
-using TMPro;           // สำหรับ TextMeshPro
+using UnityEngine.UI;
+using TMPro;
 using System.Collections;
 
 public class Monster : MonoBehaviour
 {
     [Header("Settings")]
-    public float maxHealth = 100f; // เลือดเต็ม
+    public float maxHealth = 100f;
     public float currentHealth;
 
-    [Header("UI References")]
-    public Slider healthBar;        // ลาก Slider มาใส่
-    public TextMeshProUGUI hpText;  // ลาก TextMeshPro มาใส่
+    [Header("UI")]
+    public Slider healthBar;
+    public TextMeshProUGUI hpText;
 
     private GameManager gameManager;
     private Vector3 originalScale;
@@ -40,7 +40,6 @@ public class Monster : MonoBehaviour
         currentHealth -= damage;
         if (currentHealth < 0f) currentHealth = 0f;
 
-        // เอฟเฟกต์ตัวเด้งนิดนึงตอนโดนตี (Juice)
         StopAllCoroutines();
         StartCoroutine(HitFeedback());
 
@@ -58,7 +57,6 @@ public class Monster : MonoBehaviour
         float t = 0f;
         Vector3 small = originalScale * 0.9f;
 
-        // scale down
         while (t < duration)
         {
             t += Time.deltaTime;
@@ -68,7 +66,6 @@ public class Monster : MonoBehaviour
         }
 
         t = 0f;
-        // scale back
         while (t < duration)
         {
             t += Time.deltaTime;
@@ -96,12 +93,11 @@ public class Monster : MonoBehaviour
 
     private void Die()
     {
-        // แจ้ง GameManager ว่ามอนสเตอร์ตายแล้ว
         if (gameManager != null)
         {
             gameManager.OnMonsterDied();
         }
 
-        gameObject.SetActive(false); // ซ่อนมอนสเตอร์ชั่วคราว
+        gameObject.SetActive(false);
     }
 }
