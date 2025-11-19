@@ -377,6 +377,7 @@ GameObject:
   - component: {fileID: 705181446}
   - component: {fileID: 705181445}
   - component: {fileID: 705181449}
+  - component: {fileID: 705181450}
   m_Layer: 0
   m_Name: py_0
   m_TagString: Untagged
@@ -532,6 +533,18 @@ MonoBehaviour:
   scalingMultiplier: 2
   scalingPower: 0.75
   showCalculationLog: 1
+--- !u!114 &705181450
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 705181444}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ba5502b1f636f6a43984a3d435b7d825, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &927231832
 GameObject:
   m_ObjectHideFlags: 0
@@ -652,10 +665,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c4bcd2afdddf15d458715b5a0206c1bc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  clickDamage: 10
   monsterLayer:
     serializedVersion: 2
     m_Bits: 4294967295
+  clickDamage: 10
+  ultimateProgression: {fileID: 0}
+  mainCamera: {fileID: 0}
 --- !u!4 &1014112710
 Transform:
   m_ObjectHideFlags: 0
@@ -685,7 +700,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   clickManager: {fileID: 1014112709}
   currentLevel: 1
-  currentClickDamage: 10
+  baseClickDamage: 10
+  minDamageMultiplier: 1
+  maxDamageMultiplier: 2
+  enableDamageVariance: 1
+  showDamageLog: 0
 --- !u!1 &1049282214
 GameObject:
   m_ObjectHideFlags: 0
@@ -920,7 +939,7 @@ MonoBehaviour:
   levelText: {fileID: 1945322932}
   damageText: {fileID: 1358726409}
   costText: {fileID: 1622120314}
-  playerGold: 5000
+  playerGold: 0
   goldText: {fileID: 1423164485}
 --- !u!1 &1358726406
 GameObject:

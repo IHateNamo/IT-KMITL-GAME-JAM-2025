@@ -4,25 +4,32 @@ using System.Collections.Generic;
 public class UpgradeManager : MonoBehaviour
 {
     [Header("References")]
-    public ClickManager clickManager; // ต้องลาก ClickManager GameObject มาใส่
+    public ClickManager clickManager;
     
     [Header("Current Status")]
     [SerializeField] private int currentLevel = 1;
-    [SerializeField] private float currentClickDamage = 10f;
+    [SerializeField] private float baseClickDamage = 10f;
+    
+    [Header("Damage Variance")]
+    [Tooltip("ดาเมจต่ำสุด (1.0 = 100%)")]
+    [SerializeField] private float minDamageMultiplier = 1.0f;
+    
+    [Tooltip("ดาเมจสูงสุด (2.0 = 200%)")]
+    [SerializeField] private float maxDamageMultiplier = 2.0f;
+    
+    [Tooltip("เปิด/ปิดระบบดาเมจสุ่ม")]
+    [SerializeField] private bool enableDamageVariance = true;
+    
+    [Header("Debug")]
+    [SerializeField] private bool showDamageLog = true;
     
     private Dictionary<int, UpgradeLevel> upgradeLevels = new Dictionary<int, UpgradeLevel>();
+    private float nextClickDamage = 10f; // เก็บดาเมจที่จะใช้ในครั้งถัดไป
     
     void Start()
     {
         LoadUpgradesFromCSV();
-        UpdateClickManagerDamage(); // ตั้งค่าเริ่มต้น
-    }
-    
-    // เพิ่มฟังก์ชัน Update เพื่อ sync ค่าตลอดเวลา
-    void Update()
-    {
-        // ส่งค่าไปที่ ClickManager ทุกเฟรม (เพื่อให้แน่ใจว่าค่าถูกต้อง)
-        UpdateClickManagerDamage();
+        PrepareNextClickDamage(); // สุ่มดาเมจครั้งแรก
     }
     
     void LoadUpgradesFromCSV()
@@ -53,10 +60,9 @@ public class UpgradeManager : MonoBehaviour
             upgradeLevels.Add(level.level, level);
         }
         
-        // ตั้งค่าเริ่มต้นจาก Level 1 ใน CSV
         if (upgradeLevels.ContainsKey(currentLevel))
         {
-            currentClickDamage = upgradeLevels[currentLevel].clickDamage;
+            baseClickDamage = upgradeLevels[currentLevel].clickDamage;
         }
         
         Debug.Log($"โหลดข้อมูลอัพเกรด {upgradeLevels.Count} เลเวลสำเร็จ");
@@ -75,15 +81,13 @@ public class UpgradeManager : MonoBehaviour
         if (playerGold >= nextLevel.cost)
         {
             currentLevel++;
-            currentClickDamage = upgradeLevels[currentLevel].clickDamage;
-            
-            // บังคับอัพเดททันที
-            UpdateClickManagerDamage();
+            baseClickDamage = upgradeLevels[currentLevel].clickDamage;
+            PrepareNextClickDamage(); // สุ่มดาเมจใหม่หลังอัพเกรด
             
             Debug.Log($"=== อัพเกรดสำเร็จ ===");
             Debug.Log($"Level: {currentLevel}");
-            Debug.Log($"Click Damage ใหม่: {currentClickDamage}");
-            Debug.Log($"ClickManager.clickDamage ตอนนี้: {clickManager.clickDamage}");
+            Debug.Log($"Base Damage: {baseClickDamage}");
+            Debug.Log($"Damage Range: {GetMinDamage():F1} - {GetMaxDamage():F1}");
             
             return true;
         }
@@ -94,23 +98,52 @@ public class UpgradeManager : MonoBehaviour
         }
     }
     
-    // *** ฟังก์ชันหลักที่ส่งค่าไปที่ ClickManager ***
-    private void UpdateClickManagerDamage()
+    // *** สร้างดาเมจสำหรับการคลิกครั้งถัดไป ***
+    private void PrepareNextClickDamage()
     {
-        if (clickManager != null)
+        if (enableDamageVariance)
         {
-            // บังคับให้ ClickManager.clickDamage = ค่าจาก CSV
-            clickManager.clickDamage = currentClickDamage;
+            float randomMultiplier = Random.Range(minDamageMultiplier, maxDamageMultiplier);
+            nextClickDamage = baseClickDamage * randomMultiplier;
         }
         else
         {
-            Debug.LogError("⚠️ ClickManager ไม่ได้ถูกเชื่อมต่อ!");
-            Debug.LogError("กรุณาลาก GameObject ที่มี ClickManager มาใส่ใน Inspector!");
+            nextClickDamage = baseClickDamage;
+        }
+        
+        // อัพเดทให้ ClickManager
+        if (clickManager != null)
+        {
+            clickManager.clickDamage = nextClickDamage;
         }
     }
     
+    // *** ฟังก์ชันให้ตัวอื่นเรียกหลังจากคลิก เพื่อสุ่มดาเมจครั้งใหม่ ***
+    public void OnClickUsed()
+    {
+        if (showDamageLog)
+        {
+            Debug.Log($"🎲 Damage Used: {nextClickDamage:F1}");
+        }
+        
+        // สุ่มดาเมจใหม่สำหรับการคลิกครั้งถัดไป
+        PrepareNextClickDamage();
+    }
+    
     public int GetCurrentLevel() => currentLevel;
-    public float GetCurrentDamage() => currentClickDamage;
+    public float GetCurrentDamage() => baseClickDamage;
+    
+    public float GetMinDamage() => baseClickDamage * minDamageMultiplier;
+    public float GetMaxDamage() => baseClickDamage * maxDamageMultiplier;
+    
+    public string GetDamageRangeText()
+    {
+        if (enableDamageVariance)
+        {
+            return $"{GetMinDamage():F0} - {GetMaxDamage():F0}";
+        }
+        return $"{baseClickDamage:F0}";
+    }
     
     public float GetNextLevelCost()
     {
