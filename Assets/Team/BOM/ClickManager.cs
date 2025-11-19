@@ -5,6 +5,10 @@ public class ClickManager : MonoBehaviour
     public float clickDamage = 10f; // ดาเมจต่อการคลิก
     public LayerMask monsterLayer;  // กำหนด Layer ให้มอนสเตอร์
 
+    [Header("Optional: Player Attack Animation")]
+    [SerializeField] private Animator playerAnimator;
+    private static readonly int AttackParam = Animator.StringToHash("Attack");
+
     void Update()
     {
         // ตรวจจับการกดเมาส์ซ้าย หรือ นิ้วแตะหน้าจอ
@@ -14,9 +18,9 @@ public class ClickManager : MonoBehaviour
         }
     }
 
-    void DetectClick()
+    private void DetectClick()
     {
-        // ยิง Raycast จากตำแหน่งเมาส์/นิ้ว ไปในโลกเกม
+        // ยิง Raycast จากตำแหน่งเมาส์ ไปในโลกเกม
         Vector2 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
         RaycastHit2D hit = Physics2D.Raycast(mousePos, Vector2.zero, Mathf.Infinity, monsterLayer);
 
@@ -27,6 +31,19 @@ public class ClickManager : MonoBehaviour
             if (monster != null)
             {
                 monster.TakeDamage(clickDamage);
+
+                // เติมเกจอัลติ
+                if (PlayerCombatAndUlt.Instance != null)
+                {
+                    PlayerCombatAndUlt.Instance.OnSuccessfulHit(clickDamage);
+                }
+
+                // เล่นอนิเมชันตีธรรมดา
+                if (playerAnimator != null)
+                {
+                    playerAnimator.SetTrigger(AttackParam);
+                }
+
                 Debug.Log("Hit Monster!");
             }
         }
