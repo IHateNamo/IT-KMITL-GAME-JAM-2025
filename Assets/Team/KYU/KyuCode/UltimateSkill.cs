@@ -1,117 +1,143 @@
 using UnityEngine;
-using System.Collections;
-using System.Collections.Generic;
+using UnityEngine.Playables;
 
 public class UltimateSkill : MonoBehaviour
 {
-    [Header("Settings")]
-    public float ultDuration = 5.0f;     // ระยะเวลา 5 วิ
-    public float timeScaleAmount = 0.3f; // สโลว์เวลา
-    public float ultDamage = 50f;        // ดาเมจตอนฟัน
-    public LayerMask monsterLayer;       // Layer เดียวกับ ClickManager
-    public float sampleDistance = 0.1f;
+    [Header("Duration")]
+    [Tooltip("ระยะเวลาที่อยู่ในโหมดอัลติ (วินาที)")]
+    public float ultDuration = 3f;
 
-    // ตัวแปรภายใน
-    private bool isDragging = false;
-    private Vector3 lastPos;
+    [Header("Slash Settings")]
+    [Tooltip("ระยะขั้นต่ำของ segment ต่อครั้ง (ยิ่งเล็กยิ่งถี่และลื่น)")]
+    public float minSlashSegmentDistance = 0.15f;
+    [Tooltip("เลเยอร์ที่อัลติจะโดน (ส่วนใหญ่ใช้กับมอนสเตอร์)")]
+    public LayerMask slashHitLayers = ~0;
+    [Tooltip("ทำดาเมจกี่ % ของเลือดแม็กซ์ต่อการโดนหนึ่งครั้ง")]
+    [Range(0f, 1f)]
+    public float damagePercentOfMaxHP = 0.6f;   // 60% of max HP
+
+    [Header("Visuals & Cutscene (optional)")]
+    public Animator playerAnimator;
+    public string ultTriggerName = "Ult";
+    public PlayableDirector ultTimeline;
+
     private Camera mainCamera;
-    private HashSet<GameObject> hitEnemiesInStroke = new HashSet<GameObject>();
 
-    void Start()
+    private bool isActive;          // อยู่ในโหมดอัลติไหม
+    private bool isDragging;        // ตอนนี้กำลังลากอยู่ไหม
+    private Vector2 lastSlashPos;   // จุดก่อนหน้าสำหรับ segment
+    private float timer;
+
+    private int _ultTriggerHash;
+
+    private void Awake()
     {
-        // หา Camera
         mainCamera = Camera.main;
-        if (mainCamera == null) mainCamera = Object.FindFirstObjectByType<Camera>();
+        if (mainCamera == null)
+            mainCamera = Object.FindFirstObjectByType<Camera>();
 
-        // *สำคัญ* ปิดตัวเองตอนเริ่มเกม 
-        // (เพื่อให้ ClickManager เช็ค isActiveAndEnabled = false แล้วนับคลิกได้)
-        this.enabled = false;
+        if (mainCamera == null)
+            Debug.LogError("UltimateSkill: no Camera in scene");
+
+        _ultTriggerHash = Animator.StringToHash(ultTriggerName);
+
+        // ปิดไว้ก่อน จนกว่าจะเริ่มอัลติ
+        enabled = false;
     }
 
-    // ฟังก์ชันนี้ถูก ClickManager เรียกเมื่อครบ 100 คลิก
+    /// <summary>
+    /// เรียกจาก UltimateProgression เมื่อเกจเต็ม
+    /// </summary>
     public void StartUltimateDuration()
     {
-        this.enabled = true; // เปิดใช้งาน (ClickManager จะหยุดนับคลิกทันที)
-        StartCoroutine(UltimateRoutine());
+        isActive = true;
+        timer = ultDuration;
+        enabled = true;
+
+        Debug.Log($"UltimateSkill: ULT USED! Entering ult mode for {ultDuration} seconds.");
+
+        if (playerAnimator != null)
+            playerAnimator.SetTrigger(_ultTriggerHash);
+
+        if (ultTimeline != null)
+        {
+            ultTimeline.time = 0;
+            ultTimeline.Play();
+        }
     }
 
-    IEnumerator UltimateRoutine()
+    private void Update()
     {
-        // เริ่ม Slow Motion
-        Time.timeScale = timeScaleAmount;
-        Time.fixedDeltaTime = 0.02f * Time.timeScale;
-        Debug.Log("⚡ SLICING MODE START! ⚡");
+        if (!isActive || mainCamera == null)
+            return;
 
-        // รอ 5 วินาที (Realtime)
-        yield return new WaitForSecondsRealtime(ultDuration);
+        // หมดเวลาอัลติ
+        timer -= Time.deltaTime;
+        if (timer <= 0f)
+        {
+            EndUltimate();
+            return;
+        }
 
-        // จบเวลา: คืนค่าปกติ
-        Time.timeScale = 1.0f;
-        Time.fixedDeltaTime = 0.02f;
-        
-        isDragging = false;
-        Debug.Log("⌛ End Ultimate.");
-
-        // *สำคัญ* ปิดตัวเองเมื่อจบ 
-        // (ClickManager จะกลับมาทำงานและเริ่มนับ 1 ใหม่)
-        this.enabled = false;
+        HandleSlashInput();
     }
 
-    void Update()
+    /// <summary>
+    /// Fruit Ninja style:
+    /// - กดเมาส์ซ้ายค้าง + ลาก = ทำ segment slash ต่อเนื่อง
+    /// </summary>
+    private void HandleSlashInput()
     {
-        // ถ้าเข้ามาทำงานใน Update ได้ แปลว่า enabled = true แล้ว (กำลังใช้อัลติ)
-        
+        // เริ่ม stroke ใหม่
         if (Input.GetMouseButtonDown(0))
         {
+            lastSlashPos = mainCamera.ScreenToWorldPoint(Input.mousePosition);
             isDragging = true;
-            lastPos = GetMouseWorld();
-            hitEnemiesInStroke.Clear();
         }
-        else if (Input.GetMouseButtonUp(0))
+        // ระหว่างลาก
+        else if (isDragging && Input.GetMouseButton(0))
+        {
+            Vector2 currentPos = mainCamera.ScreenToWorldPoint(Input.mousePosition);
+            float dist = Vector2.Distance(lastSlashPos, currentPos);
+
+            if (dist >= minSlashSegmentDistance)
+            {
+                PerformSlash(lastSlashPos, currentPos);
+                lastSlashPos = currentPos;
+            }
+        }
+        // ปล่อยเมาส์ = จบ stroke
+        else if (isDragging && Input.GetMouseButtonUp(0))
         {
             isDragging = false;
         }
-
-        if (isDragging)
-        {
-            // Logic การลากเส้นฟัน (เหมือนเดิม)
-            Vector3 cur = GetMouseWorld();
-            float dist = Vector3.Distance(lastPos, cur);
-
-            if (dist > 0f)
-            {
-                int steps = Mathf.CeilToInt(dist / sampleDistance);
-                for (int i = 0; i < steps; i++)
-                {
-                    Vector3 a = Vector3.Lerp(lastPos, cur, (float)i / steps);
-                    Vector3 b = Vector3.Lerp(lastPos, cur, (float)(i + 1) / steps);
-
-                    RaycastHit2D hit = Physics2D.Linecast(a, b, monsterLayer);
-                    if (hit.collider != null)
-                    {
-                        GameObject obj = hit.collider.gameObject;
-                        // ฟันตัวเดิมได้แค่ครั้งเดียวต่อการลาก 1 ครั้ง
-                        if (!hitEnemiesInStroke.Contains(obj))
-                        {
-                            Monster monster = obj.GetComponent<Monster>();
-                            if (monster != null)
-                            {
-                                monster.TakeDamage(ultDamage);
-                            }
-                            hitEnemiesInStroke.Add(obj);
-                        }
-                    }
-                }
-                lastPos = cur;
-            }
-        }
     }
 
-    private Vector3 GetMouseWorld()
+    private void PerformSlash(Vector2 start, Vector2 end)
     {
-        if (mainCamera == null) return Vector3.zero;
-        Vector3 p = mainCamera.ScreenToWorldPoint(Input.mousePosition);
-        p.z = 0;
-        return p;
+        RaycastHit2D[] hits = Physics2D.LinecastAll(start, end, slashHitLayers);
+
+        foreach (RaycastHit2D hit in hits)
+        {
+            if (hit.collider == null) continue;
+
+            Monster monster = hit.collider.GetComponent<Monster>();
+            if (monster != null)
+            {
+                float damage = monster.maxHealth * damagePercentOfMaxHP;
+                monster.TakeDamage(damage);
+            }
+        }
+
+        Debug.Log($"UltimateSkill: SLASH {start} -> {end}");
+    }
+
+    private void EndUltimate()
+    {
+        isActive = false;
+        enabled  = false;
+        isDragging = false;
+
+        Debug.Log("UltimateSkill: END ULT mode");
     }
 }
