@@ -2,56 +2,71 @@ using UnityEngine;
 
 public class ClickManager : MonoBehaviour
 {
-    [Header("Combat")]
-    public LayerMask monsterLayer;
-    public float clickDamage = 10f;
-
     [Header("Progression")]
-    public UltimateProgression ultimateProgression;
+    public int currentClicks = 0;
+    public int clicksToUlt = 100; 
+    
+    [Header("References")]
+    public UltimateSkill ultimateSkill; 
+    public LayerMask monsterLayer;
+    
+    // แก้ตรงนี้: จาก normalDamage เป็น clickDamage เพื่อให้ StatusCalulate เรียกใช้ได้
+    public float clickDamage = 10f; 
 
-    [Header("Camera (auto-find if empty)")]
-    [SerializeField] private Camera mainCamera;
+    // Cache Camera
+    private Camera mainCamera;
 
-    private void Start()
+    void Start()
     {
-        if (mainCamera == null)
-        {
-            mainCamera = Camera.main;
-            if (mainCamera == null)
-                mainCamera = Object.FindFirstObjectByType<Camera>();
-        }
-
-        if (mainCamera == null)
-            Debug.LogError("ClickManager: no Camera in scene");
+        mainCamera = Camera.main;
+        if (mainCamera == null) mainCamera = Object.FindFirstObjectByType<Camera>();
     }
 
-    private void Update()
+    void Update()
     {
-        if (mainCamera == null) return;
-
-        if (ultimateProgression != null && ultimateProgression.IsUltimateActive)
-            return; // disable normal clicks while ult mode
+        if (ultimateSkill != null && ultimateSkill.isActiveAndEnabled) return;
 
         if (Input.GetMouseButtonDown(0))
+        {
             DetectClick();
+        }
     }
 
     private void DetectClick()
     {
+        if (mainCamera == null) return;
+
         Vector2 mousePos = mainCamera.ScreenToWorldPoint(Input.mousePosition);
         RaycastHit2D hit = Physics2D.Raycast(mousePos, Vector2.zero, Mathf.Infinity, monsterLayer);
 
-        if (hit.collider == null) return;
-
-        Monster monster = hit.collider.GetComponent<Monster>();
-        if (monster == null) return;
-
-        monster.TakeDamage(clickDamage);
-        Debug.Log("Hit Monster! damage = " + clickDamage);
-
-        if (ultimateProgression != null)
+        if (hit.collider != null)
         {
-            ultimateProgression.RegisterClick();
+            Monster monster = hit.collider.GetComponent<Monster>();
+            if (monster != null)
+            {
+                // 1. ตีธรรมดา (ใช้ clickDamage)
+                monster.TakeDamage(clickDamage);
+                Debug.Log("Hit Monster! Click: " + currentClicks);
+
+                // 2. นับจำนวนคลิก
+                currentClicks++;
+
+                // 3. เช็คว่าครบ 100 หรือยัง
+                if (currentClicks >= clicksToUlt)
+                {
+                    ActivateUltimate();
+                    currentClicks = 0; 
+                }
+            }
+        }
+    }
+
+    void ActivateUltimate()
+    {
+        Debug.Log("⚡ ULTIMATE READY! ⚡");
+        if (ultimateSkill != null)
+        {
+            ultimateSkill.StartUltimateDuration();
         }
     }
 }
