@@ -33,8 +33,8 @@ public class UpgradeUI : MonoBehaviour
         if (upgradeManager == null) return;
         
         // อัพเดทข้อมูลปัจจุบัน
-        levelText.text = $"Level: {upgradeManager.GetCurrentLevel()}";
-        damageText.text = $"Damage: {upgradeManager.GetCurrentDamage():F0}";
+        levelText.text = $"ClickDMG Level: {upgradeManager.GetCurrentLevel()}";
+        damageText.text = $"ClickDMG: {upgradeManager.GetCurrentDamage():F0}";
         
         // อัพเดทราคาและสถานะปุ่ม
         float nextCost = upgradeManager.GetNextLevelCost();
@@ -42,7 +42,7 @@ public class UpgradeUI : MonoBehaviour
         
         if (nextCost >= 0)
         {
-            costText.text = $"Upgrade\nCost: {nextCost:F0} Gold\nNext Damage: {nextDamage:F0}";
+            costText.text = $"Upgrade\nCost: {nextCost:F0} Gold\nNext ClickDMG: {nextDamage:F0}";
             
             // เปิด/ปิดปุ่มตามเงินที่มี
             upgradeButton.interactable = (playerGold >= nextCost);
