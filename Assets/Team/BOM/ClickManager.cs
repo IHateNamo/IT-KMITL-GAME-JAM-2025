@@ -7,7 +7,8 @@ public class ClickManager : MonoBehaviour
     public float clickDamage = 10f;
 
     [Header("Progression")]
-    public UltimateProgression ultimateProgression;
+    public UltimateProgression ultimateProgression;          // logic (unchanged)
+    public UltimateProgressionView ultimateProgressionView;  // NEW: visuals + DOTween
 
     [Header("Camera (auto-find if empty)")]
     [SerializeField] private Camera mainCamera;
@@ -23,14 +24,21 @@ public class ClickManager : MonoBehaviour
 
         if (mainCamera == null)
             Debug.LogError("ClickManager: no Camera in scene");
+
+        // Auto-link progression from view if not set manually
+        if (ultimateProgression == null && ultimateProgressionView != null)
+        {
+            ultimateProgression = ultimateProgressionView.progression;
+        }
     }
 
     private void Update()
     {
         if (mainCamera == null) return;
 
+        // block normal clicks while ult mode active
         if (ultimateProgression != null && ultimateProgression.IsUltimateActive)
-            return; // disable normal clicks while ult mode
+            return;
 
         if (Input.GetMouseButtonDown(0))
             DetectClick();
@@ -49,8 +57,16 @@ public class ClickManager : MonoBehaviour
         monster.TakeDamage(clickDamage);
         Debug.Log("Hit Monster! damage = " + clickDamage);
 
-        if (ultimateProgression != null)
+        // 👉 Progress bar logic + DOTween + VFX are handled in another file
+        if (ultimateProgressionView != null)
         {
+            // This calls UltimateProgression.RegisterClick() inside,
+            // AND plays UI animation & VFX
+            ultimateProgressionView.RegisterClickFromOutside();
+        }
+        else if (ultimateProgression != null)
+        {
+            // Fallback: old behavior (no DOTween) if view is not assigned
             ultimateProgression.RegisterClick();
         }
     }
