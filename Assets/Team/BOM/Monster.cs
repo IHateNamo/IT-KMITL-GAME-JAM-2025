@@ -37,6 +37,11 @@ public class Monster : MonoBehaviour
 
     public void TakeDamage(float damage)
     {
+        if (ComboOverheatSystem.Instance != null)
+        {
+        ComboOverheatSystem.Instance.RegisterClickHit(this, damage);
+        }
+
         currentHealth -= damage;
         if (currentHealth < 0f) currentHealth = 0f;
 
