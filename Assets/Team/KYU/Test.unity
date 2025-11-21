@@ -717,10 +717,22 @@ MonoBehaviour:
   slashHitLayers:
     serializedVersion: 2
     m_Bits: 4294967295
-  damagePercentOfMaxHP: 0.5
+  damagePercentOfMaxHP: 0.01
+  finalHitPercentOfMaxHP: 0.2
   playerAnimator: {fileID: 966785960}
   ultTriggerName: Ult
   ultTimeline: {fileID: 0}
+  sfxSource: {fileID: 0}
+  ultStartSfx: {fileID: 0}
+  slashSfx: {fileID: 0}
+  finalHitSfx: {fileID: 0}
+  ultEndSfx: {fileID: 0}
+  ultAuraPrefab: {fileID: 0}
+  ultAuraAttachPoint: {fileID: 0}
+  slashVfxPrefab: {fileID: 0}
+  hitVfxPrefab: {fileID: 0}
+  finalHitVfxPrefab: {fileID: 0}
+  vfxLifetime: 1
 --- !u!114 &966785959
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1570,6 +1582,7 @@ MonoBehaviour:
     m_Bits: 4294967295
   clickDamage: 10
   ultimateProgression: {fileID: 2122307694}
+  ultimateProgressionView: {fileID: 0}
   mainCamera: {fileID: 0}
 --- !u!4 &2122307693
 Transform:
@@ -1599,7 +1612,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   currentClicks: 0
-  clicksToUlt: 1
+  clicksToUlt: 100
   ultSlider: {fileID: 0}
   ultText: {fileID: 0}
   ultimateSkill: {fileID: 966785958}
