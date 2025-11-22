@@ -6,7 +6,8 @@ public class UpgradeUI : MonoBehaviour
 {
     [Header("Managers")]
     public UpgradeManager upgradeManager;
-    public UltUpgradeManager ultUpgradeManager; // ← เปลี่ยนชื่อ
+    public UltUpgradeManager ultUpgradeManager;
+    public AutoClickUpgradeManager autoClickUpgradeManager;
     
     [Header("Click Damage UI")]
     public Button upgradeButton;
@@ -20,14 +21,27 @@ public class UpgradeUI : MonoBehaviour
     public TextMeshProUGUI ultimateStatsText;
     public TextMeshProUGUI ultimateCostText;
     
+    [Header("Auto Click UI")]
+    public Button autoClickUpgradeButton;
+    public TextMeshProUGUI autoClickLevelText;
+    public TextMeshProUGUI autoClickStatsText;
+    public TextMeshProUGUI autoClickCostText;
+    
     [Header("Player Resources")]
     public float playerGold = 5000f;
     public TextMeshProUGUI goldText;
     
     void Start()
     {
-        upgradeButton.onClick.AddListener(OnUpgradeButtonClick);
-        ultimateUpgradeButton.onClick.AddListener(OnUltimateUpgradeButtonClick);
+        // เชื่อมปุ่มกับฟังก์ชัน - ต้องมีฟังก์ชันเหล่านี้
+        if (upgradeButton != null)
+            upgradeButton.onClick.AddListener(OnUpgradeButtonClick);
+        
+        if (ultimateUpgradeButton != null)
+            ultimateUpgradeButton.onClick.AddListener(OnUltimateUpgradeButtonClick);
+        
+        if (autoClickUpgradeButton != null)
+            autoClickUpgradeButton.onClick.AddListener(OnAutoClickUpgradeButtonClick);
     }
     
     void Update()
@@ -37,48 +51,112 @@ public class UpgradeUI : MonoBehaviour
     
     void UpdateUI()
     {
-        // อัพเดท Click Damage UI
+        // Click Damage UI
         if (upgradeManager != null)
         {
-            levelText.text = $"ClickDMG Level: {upgradeManager.GetCurrentLevel()}";
-            damageText.text = $"ClickDMG: {upgradeManager.GetCurrentDamage():F0}";
+            if (levelText != null)
+                levelText.text = $"ClickDMG Level: {upgradeManager.GetCurrentLevel()}";
+            
+            if (damageText != null)
+                damageText.text = $"ClickDMG: {upgradeManager.GetCurrentDamage():F0}";
             
             float nextCost = upgradeManager.GetNextLevelCost();
             float nextDamage = upgradeManager.GetNextLevelDamage();
             
-            if (nextCost >= 0)
+            if (costText != null)
             {
-                costText.text = $"Upgrade\nCost: {nextCost:F0} Gold\nNext: {nextDamage:F0}";
-                upgradeButton.interactable = (playerGold >= nextCost);
-            }
-            else
-            {
-                costText.text = "MAX LEVEL";
-                upgradeButton.interactable = false;
+                if (nextCost >= 0)
+                {
+                    costText.text = $"Upgrade\nCost: {nextCost:F0} Gold\nNext: {nextDamage:F0}";
+                    if (upgradeButton != null)
+                        upgradeButton.interactable = (playerGold >= nextCost);
+                }
+                else
+                {
+                    costText.text = "MAX LEVEL";
+                    if (upgradeButton != null)
+                        upgradeButton.interactable = false;
+                }
             }
         }
         
-        // อัพเดท Ultimate UI
-        if (ultUpgradeManager != null) // ← เปลี่ยนชื่อ
+        // Ultimate UI
+        if (ultUpgradeManager != null)
         {
-            ultimateLevelText.text = $"Ultimate Level: {ultUpgradeManager.GetCurrentLevel()}";
+            if (ultimateLevelText != null)
+                ultimateLevelText.text = $"Ultimate Level: {ultUpgradeManager.GetCurrentLevel()}";
             
-            ultimateStatsText.text = $"Duration: {ultUpgradeManager.GetCurrentDuration()}s\n" +
-                                    $"DPS: {ultUpgradeManager.GetCurrentDPS()}% Max HP\n" +
-                                    $"Final Hit: {ultUpgradeManager.GetCurrentFinalHit()}% Max HP\n" +
-                                    $"Clicks To Ult: {ultUpgradeManager.GetCurrentClicksToUlt()}";
-
+            if (ultimateStatsText != null)
+            {
+                ultimateStatsText.text = $"Duration: {ultUpgradeManager.GetCurrentDuration()}s\n" +
+                                        $"DPS: {ultUpgradeManager.GetCurrentDPS()}%\n" +
+                                        $"Final Hit: {ultUpgradeManager.GetCurrentFinalHit()}%\n" +
+                                        $"Clicks To Ult: {ultUpgradeManager.GetCurrentClicksToUlt()}";
+            }
+            
             float ultCost = ultUpgradeManager.GetNextLevelCost();
             
-            if (ultCost >= 0)
+            if (ultimateCostText != null)
             {
-                ultimateCostText.text = $"Upgrade Ultimate\nCost: {ultCost:F0} Gold\n{ultUpgradeManager.GetNextLevelStats()}";
-                ultimateUpgradeButton.interactable = (playerGold >= ultCost);
+                if (ultCost >= 0)
+                {
+                    ultimateCostText.text = $"Upgrade\nCost: {ultCost:F0} Gold\n{ultUpgradeManager.GetNextLevelStats()}";
+                    if (ultimateUpgradeButton != null)
+                        ultimateUpgradeButton.interactable = (playerGold >= ultCost);
+                }
+                else
+                {
+                    ultimateCostText.text = "MAX LEVEL";
+                    if (ultimateUpgradeButton != null)
+                        ultimateUpgradeButton.interactable = false;
+                }
             }
-            else
+        }
+        
+        // Auto Click UI
+        if (autoClickUpgradeManager != null)
+        {
+            if (autoClickLevelText != null)
             {
-                ultimateCostText.text = "MAX LEVEL";
-                ultimateUpgradeButton.interactable = false;
+                if (autoClickUpgradeManager.IsUnlocked())
+                {
+                    autoClickLevelText.text = $"Auto Click Level: {autoClickUpgradeManager.GetCurrentLevel()}";
+                }
+                else
+                {
+                    autoClickLevelText.text = "Auto Click: LOCKED";
+                }
+            }
+            
+            if (autoClickStatsText != null)
+            {
+                if (autoClickUpgradeManager.IsUnlocked())
+                {
+                    autoClickStatsText.text = $"CPS: {autoClickUpgradeManager.GetCurrentCPS()}\n" +
+                                             $"Damage: {autoClickUpgradeManager.GetCurrentDamagePercent():F0}%";
+                }
+                else
+                {
+                    autoClickStatsText.text = autoClickUpgradeManager.GetUnlockText();
+                }
+            }
+            
+            float autoClickCost = autoClickUpgradeManager.GetNextLevelCost();
+            
+            if (autoClickCostText != null)
+            {
+                if (autoClickCost >= 0)
+                {
+                    autoClickCostText.text = $"Upgrade\nCost: {autoClickCost:F0} Gold\n{autoClickUpgradeManager.GetNextLevelStats()}";
+                    if (autoClickUpgradeButton != null)
+                        autoClickUpgradeButton.interactable = (playerGold >= autoClickCost);
+                }
+                else
+                {
+                    autoClickCostText.text = "MAX LEVEL";
+                    if (autoClickUpgradeButton != null)
+                        autoClickUpgradeButton.interactable = false;
+                }
             }
         }
         
@@ -89,11 +167,18 @@ public class UpgradeUI : MonoBehaviour
         }
     }
     
+    // ← ฟังก์ชันที่ Error บอกว่าหายไป
     public void OnUpgradeButtonClick()
     {
+        if (upgradeManager == null) return;
+        
         float cost = upgradeManager.GetNextLevelCost();
         
-        if (cost < 0) return;
+        if (cost < 0)
+        {
+            Debug.Log("ถึง Max Level แล้ว!");
+            return;
+        }
         
         if (upgradeManager.UpgradeDamage(playerGold))
         {
@@ -104,7 +189,9 @@ public class UpgradeUI : MonoBehaviour
     
     public void OnUltimateUpgradeButtonClick()
     {
-        float cost = ultUpgradeManager.GetNextLevelCost(); // ← เปลี่ยนชื่อ
+        if (ultUpgradeManager == null) return;
+        
+        float cost = ultUpgradeManager.GetNextLevelCost();
         
         if (cost < 0)
         {
@@ -112,10 +199,29 @@ public class UpgradeUI : MonoBehaviour
             return;
         }
         
-        if (ultUpgradeManager.UpgradeUltimate(playerGold)) // ← เปลี่ยนชื่อ
+        if (ultUpgradeManager.UpgradeUltimate(playerGold))
         {
             playerGold -= cost;
             Debug.Log($"✅ อัพเกรด Ultimate สำเร็จ! เหลือเงิน: {playerGold}");
+        }
+    }
+    
+    public void OnAutoClickUpgradeButtonClick()
+    {
+        if (autoClickUpgradeManager == null) return;
+        
+        float cost = autoClickUpgradeManager.GetNextLevelCost();
+        
+        if (cost < 0)
+        {
+            Debug.Log("Auto Click ถึง Max Level แล้ว!");
+            return;
+        }
+        
+        if (autoClickUpgradeManager.UpgradeAutoClick(playerGold))
+        {
+            playerGold -= cost;
+            Debug.Log($"✅ อัพเกรด Auto Click สำเร็จ! เหลือเงิน: {playerGold}");
         }
     }
     
