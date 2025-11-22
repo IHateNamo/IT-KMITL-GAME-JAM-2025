@@ -1,33 +1,57 @@
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
-using System.Collections;
+using System.Collections; 
 
 public class Monster : MonoBehaviour
 {
-    [Header("Settings")]
+    [Header("Base Settings")]
     public float maxHealth = 100f;
     public float currentHealth;
 
-    [Header("UI")]
+    [Header("Base UI (Auto-Wired)")]
     public Slider healthBar;
     public TextMeshProUGUI hpText;
 
-    private GameManager gameManager;
-    private Vector3 originalScale;
+    protected GameManager gameManager;
+    protected Vector3 originalScale;
 
-    private void Awake()
+    protected virtual void Awake()
     {
-        gameManager   = FindObjectOfType<GameManager>();
+        // 1. Find Game Manager
+        gameManager = Object.FindFirstObjectByType<GameManager>();
         originalScale = transform.localScale;
+
+        // 2. Auto-Wire UI: Find HP Text
+        if (hpText == null)
+        {
+            GameObject textObj = GameObject.Find("HPText"); // Make sure your Text object is named "HPText"
+            if (textObj != null) 
+                hpText = textObj.GetComponent<TextMeshProUGUI>();
+            else 
+                Debug.LogWarning("Monster could not find GameObject named 'HPText' in the scene.");
+        }
+
+        // 3. Auto-Wire UI: Find Health Slider
+        if (healthBar == null)
+        {
+            // Try finding "HPBar" first, if not, try "Slider" (default name)
+            GameObject sliderObj = GameObject.Find("HPBar");
+            if (sliderObj == null) sliderObj = GameObject.Find("Slider");
+
+            if (sliderObj != null) 
+                healthBar = sliderObj.GetComponent<Slider>();
+            else
+                Debug.LogWarning("Monster could not find 'HPBar' or 'Slider' in the scene.");
+        }
     }
 
-    private void OnEnable()
+    protected virtual void OnEnable()
     {
         ResetMonster();
     }
 
-    public void ResetMonster()
+    public virtual void ResetMonster()
     {
         currentHealth = maxHealth;
         UpdateUI();
@@ -35,11 +59,11 @@ public class Monster : MonoBehaviour
         gameObject.SetActive(true);
     }
 
-    public void TakeDamage(float damage)
+    public virtual void TakeDamage(float damage)
     {
         if (ComboOverheatSystem.Instance != null)
         {
-        ComboOverheatSystem.Instance.RegisterClickHit(this, damage);
+            ComboOverheatSystem.Instance.RegisterClickHit(this, damage);
         }
 
         currentHealth -= damage;
@@ -56,7 +80,7 @@ public class Monster : MonoBehaviour
         }
     }
 
-    private IEnumerator HitFeedback()
+    protected virtual IEnumerator HitFeedback()
     {
         float duration = 0.1f;
         float t = 0f;
@@ -82,7 +106,7 @@ public class Monster : MonoBehaviour
         transform.localScale = originalScale;
     }
 
-    private void UpdateUI()
+    protected virtual void UpdateUI()
     {
         if (healthBar != null)
         {
@@ -96,11 +120,11 @@ public class Monster : MonoBehaviour
         }
     }
 
-    private void Die()
+    protected virtual void Die()
     {
         if (gameManager != null)
         {
-            gameManager.OnMonsterDied();
+            gameManager.OnMonsterDied(this);
         }
 
         gameObject.SetActive(false);
