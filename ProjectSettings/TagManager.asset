@@ -3,7 +3,8 @@
 --- !u!78 &1
 TagManager:
   serializedVersion: 3
-  tags: []
+  tags:
+  - Enemy
   layers:
   - Default
   - TransparentFX
@@ -15,7 +16,7 @@ TagManager:
   - 
   - 
   - 
-  - 
+  - SolidBuilding
   - 
   - 
   - 
@@ -38,8 +39,23 @@ TagManager:
   - 
   - 
   m_SortingLayers:
+  - name: Clouds
+    uniqueID: 2334016981
+    locked: 0
   - name: Default
     uniqueID: 0
+    locked: 0
+  - name: SolidBuilding
+    uniqueID: 2406291007
+    locked: 0
+  - name: Floor
+    uniqueID: 4275855119
+    locked: 0
+  - name: Enemies
+    uniqueID: 3032152903
+    locked: 0
+  - name: Players
+    uniqueID: 308882235
     locked: 0
   m_RenderingLayers:
   - Default
