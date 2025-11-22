@@ -1135,6 +1135,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ultDuration: 3
+  slowMotionScale: 0.3
   minSlashSegmentDistance: 0.15
   slashHitLayers:
     serializedVersion: 2
@@ -1149,8 +1150,6 @@ MonoBehaviour:
   slashSfx: {fileID: 0}
   finalHitSfx: {fileID: 0}
   ultEndSfx: {fileID: 0}
-  ultAuraPrefab: {fileID: 0}
-  ultAuraAttachPoint: {fileID: 0}
   slashVfxPrefab: {fileID: 0}
   hitVfxPrefab: {fileID: 0}
   finalHitVfxPrefab: {fileID: 0}
@@ -2292,19 +2291,19 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   comboWindow: 2
-  combo: 0
+  combo: 12
   comboForTierC: 5
   comboForTierB: 10
   comboForTierA: 20
   comboForTierS: 35
-  currentTier: 0
+  currentTier: 2
   heat: 0
-  heatPerMiss: 0.15
   heatPerHit: 0.02
+  heatPerMiss: 0.15
   heatDecayPerSecond: 0.25
   overheatThreshold: 1
   overheatDuration: 1.5
-  isOverheated: 0
+  isOverheated: 1
   damagePerComboStack: 0.02
   tierDExtra: 0
   tierCExtra: 0.1
