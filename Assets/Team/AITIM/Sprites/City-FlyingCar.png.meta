@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 8b2e617e72b28c94e9349e75c3a32689
+guid: 1422f10115850cd4bab2159a7bf500f6
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -157247174256461896
-    second: Cloud6_0
+      213: -2555757172927124539
+    second: City-FlyingCar_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -100,13 +100,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Cloud6_0
+      name: City-FlyingCar_0
       rect:
         serializedVersion: 2
         x: 0
         y: 0
-        width: 44
-        height: 25
+        width: 7
+        height: 3
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -115,8 +115,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 8b77284378851ddf0800000000000000
-      internalID: -157247174256461896
+      spriteID: 5cba5876460288cd0800000000000000
+      internalID: -2555757172927124539
       vertices: []
       indices: 
       edges: []
@@ -135,7 +135,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      Cloud6_0: -157247174256461896
+      City-FlyingCar_0: -2555757172927124539
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

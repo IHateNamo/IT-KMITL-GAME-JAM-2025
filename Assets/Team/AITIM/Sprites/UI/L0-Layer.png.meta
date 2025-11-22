@@ -1,22 +1,25 @@
 fileFormatVersion: 2
-guid: 4db2f9655ff9d534dbd417eefd2cd840
+guid: 984102242d4cf6848b65cf7af43772df
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 8711690888133650118
-    second: RoboticDragon_0
+      213: 6466636018217643550
+    second: L0-Layer_0
   - first:
-      213: -7590858761238110294
-    second: RoboticDragon_1
+      213: 8774873912338522618
+    second: L0-Layer_1
   - first:
-      213: 1732877612972063671
-    second: RoboticDragon_2
+      213: 1525655368117827244
+    second: L0-Layer_2
   - first:
-      213: 3436421564275305383
-    second: RoboticDragon_3
+      213: -4732567789991062615
+    second: L0-Layer_3
   - first:
-      213: -8223340221399085065
-    second: RoboticDragon_4
+      213: 7353414025146374189
+    second: L0-Layer_4
+  - first:
+      213: 8366911252691191685
+    second: L0-Layer_5
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -112,13 +115,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: RoboticDragon_0
+      name: L0-Layer_0
       rect:
         serializedVersion: 2
         x: 0
         y: 0
-        width: 148
-        height: 157
+        width: 427
+        height: 240
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -127,20 +130,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 6c6a63cc4b426e870800000000000000
-      internalID: 8711690888133650118
+      spriteID: e1eeb95623b1eb950800000000000000
+      internalID: 6466636018217643550
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: RoboticDragon_1
+      name: L0-Layer_1
       rect:
         serializedVersion: 2
-        x: 148
+        x: 427
         y: 0
-        width: 148
-        height: 157
+        width: 427
+        height: 240
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -149,20 +152,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: aaf9d3cbc2ad7a690800000000000000
-      internalID: -7590858761238110294
+      spriteID: af1a7cdf45d96c970800000000000000
+      internalID: 8774873912338522618
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: RoboticDragon_2
+      name: L0-Layer_2
       rect:
         serializedVersion: 2
-        x: 296
+        x: 854
         y: 0
-        width: 148
-        height: 157
+        width: 427
+        height: 240
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -171,20 +174,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 7bb3d60020b6c0810800000000000000
-      internalID: 1732877612972063671
+      spriteID: ca6b45a59773c2510800000000000000
+      internalID: 1525655368117827244
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: RoboticDragon_3
+      name: L0-Layer_3
       rect:
         serializedVersion: 2
-        x: 444
+        x: 1281
         y: 0
-        width: 148
-        height: 157
+        width: 427
+        height: 240
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -193,20 +196,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 7ab2f1da43f90bf20800000000000000
-      internalID: 3436421564275305383
+      spriteID: 9a390225baa825eb0800000000000000
+      internalID: -4732567789991062615
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: RoboticDragon_4
+      name: L0-Layer_4
       rect:
         serializedVersion: 2
-        x: 592
+        x: 1708
         y: 0
-        width: 148
-        height: 157
+        width: 427
+        height: 240
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -215,8 +218,30 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 7ff435443a3d0ed80800000000000000
-      internalID: -8223340221399085065
+      spriteID: d28993788139c0660800000000000000
+      internalID: 7353414025146374189
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: L0-Layer_5
+      rect:
+        serializedVersion: 2
+        x: 2135
+        y: 0
+        width: 427
+        height: 240
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 58780eb547d3d1470800000000000000
+      internalID: 8366911252691191685
       vertices: []
       indices: 
       edges: []
@@ -225,7 +250,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 739f97b6da36812439fbf773eb9dcfdd
+    spriteID: f9c135725dce14a4ca2c709b6328c84a
     internalID: 0
     vertices: []
     indices: 
@@ -235,11 +260,12 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      RoboticDragon_0: 8711690888133650118
-      RoboticDragon_1: -7590858761238110294
-      RoboticDragon_2: 1732877612972063671
-      RoboticDragon_3: 3436421564275305383
-      RoboticDragon_4: -8223340221399085065
+      L0-Layer_0: 6466636018217643550
+      L0-Layer_1: 8774873912338522618
+      L0-Layer_2: 1525655368117827244
+      L0-Layer_3: -4732567789991062615
+      L0-Layer_4: 7353414025146374189
+      L0-Layer_5: 8366911252691191685
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
