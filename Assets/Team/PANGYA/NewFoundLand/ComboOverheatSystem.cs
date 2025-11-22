@@ -218,7 +218,14 @@ public class ComboOverheatSystem : MonoBehaviour
             comboUiAnimator.SetTrigger(comboChargeTriggerName);
 
         UpdateComboTier(forceLog: false);
+
+        // 🔥 เรียกให้เลขคอมโบลอยขึ้น
+        if (ComboFloatingTextManager.Instance != null)
+        {
+            ComboFloatingTextManager.Instance.ShowCombo(combo);
+        }
     }
+
 
     private void InternalUltHit(Monster monster, float damage)
     {
@@ -228,7 +235,13 @@ public class ComboOverheatSystem : MonoBehaviour
         comboTimer = Mathf.Max(comboTimer, comboWindow * 0.5f);
 
         UpdateComboTier(forceLog: false);
+
+        if (ComboFloatingTextManager.Instance != null)
+        {
+            ComboFloatingTextManager.Instance.ShowCombo(combo);
+        }
     }
+
 
     private void InternalClickMiss()
     {
