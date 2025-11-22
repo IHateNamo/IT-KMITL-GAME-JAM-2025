@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using System; 
 
 public class UltimateProgression : MonoBehaviour
 {
@@ -9,51 +10,93 @@ public class UltimateProgression : MonoBehaviour
     public int clicksToUlt = 100;
 
     [Header("UI References")]
-    public Slider ultSlider;        // ลาก Slider มาใส่ตรงนี้
-    public TextMeshProUGUI ultText; // ลาก Text (TMP) มาใส่ตรงนี้
+    public Slider ultSlider;
+    public TextMeshProUGUI ultText;
+
+    [Header("Ultimate Animation UI")]
+    public Animator ultUIAnimator; 
+    private int showUltTriggerHash;
+    private int hideUltTriggerHash; // เพิ่มตัวแปรสำหรับซ่อน/กลับสู่สถานะ Idle
 
     [Header("Links")]
     public UltimateSkill ultimateSkill;
 
-    // ตัวเช็คว่าอัลติทำงานอยู่ไหม
+    // ตัวแปรสำหรับตรวจจับการเปลี่ยนสถานะ
+    private bool wasActive = false; 
+
     public bool IsUltimateActive
     {
-        get
-        {
-            return ultimateSkill != null && ultimateSkill.isActiveAndEnabled;
-        }
+        get { return ultimateSkill != null && ultimateSkill.isActiveAndEnabled; }
     }
 
     private void Start()
     {
-        // ตั้งค่าเริ่มต้นให้หลอด (เช่น เริ่มมาเป็น 0/100)
         UpdateUI();
+        if (ultUIAnimator != null)
+        {
+            // ควรตั้ง Trigger แยกกันสำหรับ เปิด/ปิด หรือใช้ Trigger เดียวตามการตั้งค่า Animator
+            showUltTriggerHash = Animator.StringToHash("ShowUlt"); 
+            // *สมมติว่าคุณมี Trigger ชื่อ HideUlt ด้วย หรือใช้ ShowUlt ในการกลับสถานะ*
+            hideUltTriggerHash = Animator.StringToHash("HideUlt"); 
+        }
     }
 
+    private void Update()
+    {
+        bool nowActive = IsUltimateActive;
+
+        if (nowActive)
+        {
+            // 1. ถ้าอัลติกำลังทำงาน: นับถอยหลัง (Text และ Slider)
+            if (ultimateSkill != null && ultSlider != null)
+            {
+                float remaining = ultimateSkill.RemainingTime;
+                float duration = ultimateSkill.ultDuration; // ดึงระยะเวลาทั้งหมดจาก UltimateSkill
+
+                // A. อัปเดต Slider: ตั้งค่า Max Value เป็นระยะเวลาทั้งหมด
+                ultSlider.maxValue = duration;
+                ultSlider.value = remaining;
+
+                // B. อัปเดต Text: โชว์เวลาที่เหลือ
+                ultText.text = $"ULT: {Mathf.CeilToInt(remaining)}s";
+            }
+        }
+        
+        // 2. ตรวจจับการจบอัลติ (Transition จาก Active -> Inactive)
+        if (wasActive && !nowActive)
+        {
+            // อัลติจบแล้ว:
+            
+            // A. สั่งให้ Animation กลับไป Idle
+            if (ultUIAnimator != null)
+            {
+                // ใช้ Trigger ที่สั่งให้ UI กลับไปซ่อน (ตามการตั้งค่า Animator)
+                ultUIAnimator.SetTrigger(hideUltTriggerHash); 
+            }
+            
+            // B. รีเซ็ต Slider/Text ให้กลับไปโชว์ 0/100
+            ultSlider.maxValue = clicksToUlt; // คืนค่า Max Value ให้เป็นจำนวนคลิก
+            UpdateUI();
+        }
+
+        // 3. อัปเดตสถานะ
+        wasActive = nowActive;
+    }
+
+    // --- ส่วนการนับคลิก (เหมือนเดิม) ---
     public void RegisterClick()
     {
-        // ถ้าอัลติทำงานอยู่ ไม่ต้องนับเพิ่ม
         if (IsUltimateActive) return;
 
-        // 1. เพิ่มจำนวนคลิก
         currentClicks++;
-        
-        // Debug เพื่อเช็คความชัวร์
-        Debug.Log($"UltimateProgression: Click {currentClicks}/{clicksToUlt}");
 
-        // 2. เช็คว่าเต็มหรือยัง
         if (currentClicks >= clicksToUlt)
         {
             Debug.Log("⚡ ULT READY & ACTIVATED! ⚡");
-            
-            // สั่งเปิดอัลติ
             ActivateUltimate();
-            
-            // 3. รีเซ็ตค่ากลับเป็น 0 ทันที
             currentClicks = 0;
         }
 
-        // 4. อัปเดตหน้าจอ (หลอดจะขยับตาม currentClicks ที่เปลี่ยนไป)
         UpdateUI();
     }
 
@@ -62,24 +105,27 @@ public class UltimateProgression : MonoBehaviour
         if (ultimateSkill != null)
         {
             ultimateSkill.StartUltimateDuration();
-        }
-        else
-        {
-            Debug.LogWarning("UltimateProgression: ลืมใส่ UltimateSkill ใน Inspector หรือเปล่าครับ?");
+            
+            // สั่งให้ Animation เล่น (โชว์ UI)
+            if (ultUIAnimator != null)
+            {
+                // ใช้ Trigger เพื่อเริ่ม Animation โชว์ตัว UI
+                ultUIAnimator.SetTrigger(showUltTriggerHash); 
+            }
         }
     }
 
-    // ฟังก์ชันจัดการ Slider และ Text
+    // ฟังก์ชันจัดการ Slider และ Text (ใช้ตอนเก็บเกจเท่านั้น)
     private void UpdateUI()
     {
-        // อัปเดตหลอด Slider
         if (ultSlider != null)
         {
-            ultSlider.maxValue = clicksToUlt; // ตั้งค่าเต็มหลอด (100)
-            ultSlider.value = currentClicks;  // ตั้งค่าปัจจุบัน (จะขยับตามคลิก)
+            // ใช้ค่า clicksToUlt ในการเก็บเกจ
+            ultSlider.maxValue = clicksToUlt;
+            ultSlider.value = currentClicks;
         }
 
-        // อัปเดตตัวเลข Text
+        // โชว์ 0/100 ตอนเก็บเกจ
         if (ultText != null)
         {
             ultText.text = $"{currentClicks} / {clicksToUlt}";

@@ -5,15 +5,17 @@ using UnityEngine.Playables;
 public class UltimateSkill : MonoBehaviour
 {
     // ========================================================================
-    // ไม่มีการนับแต้มในนี้แล้ว (เพราะ UltimateProgression จัดการให้)
+    // UltimateSkill: ทำหน้าที่แค่ "ฟัน" และ "Slow Motion" เท่านั้น
+    // (การนับแต้ม/กดค้าง อยู่ที่ UltimateProgression แล้ว)
     // ========================================================================
+    public float RemainingTime => timer;
 
     [Header("Ultimate Settings")]
     [Tooltip("ระยะเวลาที่อยู่ในโหมดอัลติ")]
     public float ultDuration = 3f;
     
     [Tooltip("ความช้าของเวลา (0.3 = ช้าลงเหลือ 30%)")]
-    public float slowMotionScale = 0.3f; // ✅ ยังมี Slow Motion ตามที่ขอ
+    public float slowMotionScale = 0.3f; 
 
     [Header("Slash Settings")]
     public float minSlashSegmentDistance = 0.25f;
@@ -43,7 +45,7 @@ public class UltimateSkill : MonoBehaviour
 
     // ตัวแปรภายใน
     private Camera mainCamera;
-    private bool isActive;
+    private bool isActive; // ตัวนี้แหละที่ IsBusy จะมาดึงค่าไป
     private bool isDragging;
     private Vector2 lastSlashPos;
     private float timer;
@@ -61,7 +63,7 @@ public class UltimateSkill : MonoBehaviour
         enabled = false;
     }
 
-    // ฟังก์ชันนี้จะถูกเรียกจาก UltimateProgression
+    // ฟังก์ชันนี้จะถูกเรียกจาก UltimateProgression ตอนกดค้างครบ 1.5 วิ
     public void StartUltimateDuration()
     {
         isActive = true;
@@ -72,7 +74,7 @@ public class UltimateSkill : MonoBehaviour
 
         Debug.Log("UltimateSkill: ULT STARTED (Slow Motion ON)");
 
-        // ✅ เปิด Slow Motion
+        // เปิด Slow Motion
         Time.timeScale = slowMotionScale;
         Time.fixedDeltaTime = 0.02f * Time.timeScale;
 
@@ -86,7 +88,7 @@ public class UltimateSkill : MonoBehaviour
     {
         if (!isActive || mainCamera == null) return;
 
-        // นับถอยหลัง (ใช้ unscaledDeltaTime เพราะเวลาเดินช้า)
+        // นับถอยหลัง
         timer -= Time.unscaledDeltaTime;
 
         if (timer <= 0f)
@@ -148,7 +150,7 @@ public class UltimateSkill : MonoBehaviour
 
     private void EndUltimate()
     {
-        // Finisher
+        // Finisher Logic
         if (finalHitPercentOfMaxHP > 0f && monstersHitThisUlt.Count > 0)
         {
             PlaySfx(finalHitSfx);
@@ -166,13 +168,13 @@ public class UltimateSkill : MonoBehaviour
         monstersHitThisUlt.Clear();
         PlaySfx(ultEndSfx);
 
-        // ✅ ปิด Slow Motion (คืนค่าเวลา)
+        // คืนค่าเวลา
         Time.timeScale = 1.0f;
         Time.fixedDeltaTime = 0.02f;
 
         isActive = false;
         isDragging = false;
-        enabled = false; // ปิด Update
+        enabled = false;
 
         Debug.Log("UltimateSkill: ULT ENDED");
     }
@@ -188,6 +190,8 @@ public class UltimateSkill : MonoBehaviour
         if (prefab != null) Destroy(Instantiate(prefab, pos, rot), vfxLifetime);
     }
 
-    // Property ให้ UltimateProgression เช็คสถานะ
-    public bool isActiveAndEnabled => isActive;
+    // =================================================================
+    // ✅ ส่วนสำคัญที่แก้ Error: Property ให้คนอื่นเช็คสถานะได้
+    // =================================================================
+    public bool IsBusy => isActive;
 }
