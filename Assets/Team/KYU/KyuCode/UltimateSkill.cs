@@ -4,18 +4,14 @@ using UnityEngine.Playables;
 
 public class UltimateSkill : MonoBehaviour
 {
-    // ========================================================================
-    // UltimateSkill: ทำหน้าที่แค่ "ฟัน" และ "Slow Motion" เท่านั้น
-    // (การนับแต้ม/กดค้าง อยู่ที่ UltimateProgression แล้ว)
-    // ========================================================================
     public float RemainingTime => timer;
 
     [Header("Ultimate Settings")]
     [Tooltip("ระยะเวลาที่อยู่ในโหมดอัลติ")]
     public float ultDuration = 3f;
-    
+
     [Tooltip("ความช้าของเวลา (0.3 = ช้าลงเหลือ 30%)")]
-    public float slowMotionScale = 0.3f; 
+    public float slowMotionScale = 0.3f;
 
     [Header("Slash Settings")]
     public float minSlashSegmentDistance = 0.25f;
@@ -31,7 +27,7 @@ public class UltimateSkill : MonoBehaviour
     public Animator playerAnimator;
     public string ultTriggerName = "Ult";
     public PlayableDirector ultTimeline;
-    
+
     public AudioSource sfxSource;
     public AudioClip ultStartSfx;
     public AudioClip slashSfx;
@@ -43,14 +39,25 @@ public class UltimateSkill : MonoBehaviour
     public GameObject finalHitVfxPrefab;
     public float vfxLifetime = 1.0f;
 
-    // ตัวแปรภายใน
+    [Header("Cursor Trail (during ULT)")]
+    [Tooltip("Prefab with TrailRenderer that follows the cursor while ULT is active")]
+    public GameObject cursorTrailPrefab;
+
+    [Header("Slash Timeline Prefab (optional)")]
+    [Tooltip("Prefab with PlayableDirector + Timeline for each slash attack")]
+    public GameObject slashTimelinePrefab;
+    [Tooltip("Lifetime of spawned slash timeline object (>= timeline length)")]
+    public float slashTimelineLifetime = 1.2f;
+
+    // internal
     private Camera mainCamera;
-    private bool isActive; // ตัวนี้แหละที่ IsBusy จะมาดึงค่าไป
+    private bool isActive;
     private bool isDragging;
     private Vector2 lastSlashPos;
     private float timer;
     private int _ultTriggerHash;
     private readonly HashSet<Monster> monstersHitThisUlt = new HashSet<Monster>();
+    private GameObject cursorTrailInstance;
 
     private void Awake()
     {
@@ -59,45 +66,66 @@ public class UltimateSkill : MonoBehaviour
 
         _ultTriggerHash = Animator.StringToHash(ultTriggerName);
 
-        // ปิดการทำงานไว้ก่อน รอให้ UltimateProgression สั่งเปิด
+        // disabled by default, will be enabled when ULT starts
         enabled = false;
     }
 
-    // ฟังก์ชันนี้จะถูกเรียกจาก UltimateProgression ตอนกดค้างครบ 1.5 วิ
+    // Called by UltimateProgression when ULT triggers
     public void StartUltimateDuration()
     {
         isActive = true;
         isDragging = false;
         timer = ultDuration;
         monstersHitThisUlt.Clear();
-        enabled = true; // เปิดให้ Update ทำงาน
+        enabled = true;
 
         Debug.Log("UltimateSkill: ULT STARTED (Slow Motion ON)");
 
-        // เปิด Slow Motion
+        // Slow motion
         Time.timeScale = slowMotionScale;
         Time.fixedDeltaTime = 0.02f * Time.timeScale;
 
-        // เล่น Animation / Timeline
+        // Player anim + cutscene timeline
         if (playerAnimator != null) playerAnimator.SetTrigger(_ultTriggerHash);
-        if (ultTimeline != null) { ultTimeline.time = 0; ultTimeline.Play(); }
+        if (ultTimeline != null)
+        {
+            ultTimeline.time = 0;
+            ultTimeline.Play();
+        }
         PlaySfx(ultStartSfx);
+
+        // Spawn cursor trail
+        if (cursorTrailPrefab != null && mainCamera != null)
+        {
+            Vector3 pos = mainCamera.ScreenToWorldPoint(Input.mousePosition);
+            pos.z = 0f;
+            cursorTrailInstance = Instantiate(cursorTrailPrefab, pos, Quaternion.identity);
+        }
     }
 
     private void Update()
     {
         if (!isActive || mainCamera == null) return;
 
-        // นับถอยหลัง
+        // countdown (unscaled because of slow motion)
         timer -= Time.unscaledDeltaTime;
-
         if (timer <= 0f)
         {
             EndUltimate();
             return;
         }
 
+        UpdateCursorTrailPosition();
         HandleSlashInput();
+    }
+
+    private void UpdateCursorTrailPosition()
+    {
+        if (cursorTrailInstance == null || mainCamera == null) return;
+
+        Vector3 pos = mainCamera.ScreenToWorldPoint(Input.mousePosition);
+        pos.z = 0f;
+        cursorTrailInstance.transform.position = pos;
     }
 
     private void HandleSlashInput()
@@ -126,11 +154,22 @@ public class UltimateSkill : MonoBehaviour
 
     private void PerformSlash(Vector2 start, Vector2 end)
     {
-        SpawnVfx(slashVfxPrefab, (start + end) * 0.5f, Quaternion.identity); 
+        Vector3 mid = (start + end) * 0.5f;
+
+        // Simple VFX line slash
+        SpawnVfx(slashVfxPrefab, mid, Quaternion.identity);
         PlaySfx(slashSfx);
 
-        RaycastHit2D[] hits = Physics2D.LinecastAll(start, end, slashHitLayers);
+        // OPTIONAL: Timeline-based slash cutscene
+        if (slashTimelinePrefab != null)
+        {
+            GameObject slashTimelineObj = Instantiate(slashTimelinePrefab, mid, Quaternion.identity);
+            if (slashTimelineLifetime > 0f)
+                Destroy(slashTimelineObj, slashTimelineLifetime);
+        }
 
+        // Damage
+        RaycastHit2D[] hits = Physics2D.LinecastAll(start, end, slashHitLayers);
         foreach (RaycastHit2D hit in hits)
         {
             if (hit.collider == null) continue;
@@ -150,27 +189,33 @@ public class UltimateSkill : MonoBehaviour
 
     private void EndUltimate()
     {
-        // Finisher Logic
+        // Finisher
         if (finalHitPercentOfMaxHP > 0f && monstersHitThisUlt.Count > 0)
         {
             PlaySfx(finalHitSfx);
             foreach (Monster monster in monstersHitThisUlt)
             {
-                if (monster != null)
-                {
-                    float finisherDamage = monster.maxHealth * finalHitPercentOfMaxHP;
-                    monster.TakeDamage(finisherDamage);
-                    SpawnVfx(finalHitVfxPrefab, monster.transform.position, Quaternion.identity);
-                }
+                if (monster == null) continue;
+
+                float finisherDamage = monster.maxHealth * finalHitPercentOfMaxHP;
+                monster.TakeDamage(finisherDamage);
+                SpawnVfx(finalHitVfxPrefab, monster.transform.position, Quaternion.identity);
             }
         }
 
         monstersHitThisUlt.Clear();
         PlaySfx(ultEndSfx);
 
-        // คืนค่าเวลา
+        // Reset time scale
         Time.timeScale = 1.0f;
         Time.fixedDeltaTime = 0.02f;
+
+        // Destroy cursor trail
+        if (cursorTrailInstance != null)
+        {
+            Destroy(cursorTrailInstance);
+            cursorTrailInstance = null;
+        }
 
         isActive = false;
         isDragging = false;
@@ -179,19 +224,22 @@ public class UltimateSkill : MonoBehaviour
         Debug.Log("UltimateSkill: ULT ENDED");
     }
 
-    // Helper Functions
+    // Helpers
     private void PlaySfx(AudioClip clip)
     {
-        if (clip != null && sfxSource != null) sfxSource.PlayOneShot(clip);
+        if (clip != null && sfxSource != null)
+            sfxSource.PlayOneShot(clip);
     }
 
     private void SpawnVfx(GameObject prefab, Vector3 pos, Quaternion rot)
     {
-        if (prefab != null) Destroy(Instantiate(prefab, pos, rot), vfxLifetime);
+        if (prefab == null) return;
+
+        GameObject obj = Instantiate(prefab, pos, rot);
+        if (vfxLifetime > 0f)
+            Destroy(obj, vfxLifetime);
     }
 
-    // =================================================================
-    // ✅ ส่วนสำคัญที่แก้ Error: Property ให้คนอื่นเช็คสถานะได้
-    // =================================================================
+    // Property for other scripts (e.g., UltimateProgression) to check
     public bool IsBusy => isActive;
 }
