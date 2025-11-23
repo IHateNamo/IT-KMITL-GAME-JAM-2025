@@ -136,4 +136,20 @@ public class GameManager : MonoBehaviour
         activeMonster.ResetMonster();
         isBossActive = true;
     }
+
+    //Do not touch
+    void OnEnable()
+    {
+        SceneManager.sceneLoaded += OnSceneLoaded;
+    }
+
+    void OnDisable()
+    {
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+    }
+
+    void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        SetupSceneSpawning();
+    }
 }
