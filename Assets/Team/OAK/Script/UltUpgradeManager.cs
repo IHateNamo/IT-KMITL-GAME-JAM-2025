@@ -98,10 +98,7 @@ public class UltUpgradeManager : MonoBehaviour
             ultimateSkill.finalHitPercentOfMaxHP = data.finalHitPercentOfMaxHP;
             Debug.Log($"✅ อัพเดท UltimateSkill สำเร็จ");
         }
-        else
-        {
-            Debug.LogError("❌ UltimateSkill reference is null!");
-        }
+        
         
         // อัพเดท UltimateProgression (ใช้ clicksToUlt)
         if (ultimateProgression != null)
@@ -109,10 +106,7 @@ public class UltUpgradeManager : MonoBehaviour
             ultimateProgression.clicksToUlt = data.clicksToUlt; // ← แก้ตรงนี้
             Debug.Log($"✅ อัพเดท Clicks To Ult = {data.clicksToUlt}");
         }
-        else
-        {
-            Debug.LogError("❌ UltimateProgression reference is null!");
-        }
+        
         
         Debug.Log($"✅ Ultimate อัพเดทเป็น Level {level} สำเร็จ");
     }
