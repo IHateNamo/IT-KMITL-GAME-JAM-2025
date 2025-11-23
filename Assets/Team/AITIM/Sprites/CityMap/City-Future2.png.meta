@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 610020ead808afc4da692fe3e7bafe4d
+guid: 459f3d5bd1637ce41942194a8f38293e
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 2229393413727769317
-    second: Past-Tiles_0
+      213: 2329051320173495289
+    second: City-Future2_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -46,12 +46,12 @@ TextureImporter:
   nPOTScale: 0
   lightmap: 0
   compressionQuality: 50
-  spriteMode: 2
+  spriteMode: 1
   spriteExtrude: 1
   spriteMeshType: 1
   alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
-  spritePixelsToUnits: 16
+  spritePixelsToUnits: 32
   spriteBorder: {x: 0, y: 0, z: 0, w: 0}
   spriteGenerateFallbackPhysicsShape: 1
   alphaUsage: 1
@@ -100,13 +100,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Past-Tiles_0
+      name: City-Future2_0
       rect:
         serializedVersion: 2
         x: 0
-        y: 16
-        width: 16
-        height: 16
+        y: 0
+        width: 128
+        height: 256
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -115,30 +115,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 5e2d6d97f7560fe10800000000000000
-      internalID: 2229393413727769317
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: Past-Tiles_1
-      rect:
-        serializedVersion: 2
-        x: 0
-        y: 0
-        width: 16
-        height: 16
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: 7c705939c6f057d4aa411eeaa07cf1de
-      internalID: 774975399
+      spriteID: 9f3889af5d3725020800000000000000
+      internalID: 2329051320173495289
       vertices: []
       indices: 
       edges: []
@@ -157,8 +135,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      Past-Tiles_0: 2229393413727769317
-      Past-Tiles_1: 774975399
+      City-Future2_0: 2329051320173495289
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
