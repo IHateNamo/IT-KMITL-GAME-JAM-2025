@@ -2840,6 +2840,7 @@ GameObject:
   - component: {fileID: 846602074}
   - component: {fileID: 846602075}
   - component: {fileID: 846602073}
+  - component: {fileID: 846602079}
   m_Layer: 0
   m_Name: GameManager (1)
   m_TagString: Untagged
@@ -2937,6 +2938,7 @@ MonoBehaviour:
   level: 1
   minionsToKillForBoss: 5
   currentKillCount: 0
+  AllKillCount: 0
 --- !u!4 &846602078
 Transform:
   m_ObjectHideFlags: 0
@@ -2952,6 +2954,19 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &846602079
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 846602072}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 43d6b460231e57b4a8b379f2275c9633, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  gameManager: {fileID: 846602077}
 --- !u!1 &978707997
 GameObject:
   m_ObjectHideFlags: 0

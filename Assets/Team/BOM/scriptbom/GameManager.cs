@@ -18,6 +18,9 @@ public class GameManager : MonoBehaviour
     [SerializeField] private int currentKillCount = 0;
     private bool isBossActive = false;
 
+    [Header("Kill Count")]
+    public int AllKillCount = 0;
+
     private void Start()
     {
         SpawnMinion();
@@ -36,6 +39,8 @@ public class GameManager : MonoBehaviour
         {
             Debug.Log("Minion Defeated.");
             currentKillCount++;
+
+            AllKillCount++;
         }
 
         StartCoroutine(SpawnNextMonsterRoutine());
