@@ -16,33 +16,28 @@ public class Monster : MonoBehaviour
     protected GameManager gameManager;
     protected Vector3 originalScale;
 
+    // We store the specific animation routine here so we don't stop EVERYTHING
+    private Coroutine hitFeedbackCoroutine; 
+
     protected virtual void Awake()
     {
-        // 1. Find Game Manager
         gameManager = Object.FindFirstObjectByType<GameManager>();
         originalScale = transform.localScale;
 
-        // 2. Auto-Wire UI: Find HP Text
         if (hpText == null)
         {
-            GameObject textObj = GameObject.Find("HPText"); // Make sure your Text object is named "HPText"
+            GameObject textObj = GameObject.Find("HPText"); 
             if (textObj != null) 
                 hpText = textObj.GetComponent<TextMeshProUGUI>();
-            else 
-                Debug.LogWarning("Monster could not find GameObject named 'HPText' in the scene.");
         }
 
-        // 3. Auto-Wire UI: Find Health Slider
         if (healthBar == null)
         {
-            // Try finding "HPBar" first, if not, try "Slider" (default name)
             GameObject sliderObj = GameObject.Find("HPBar");
             if (sliderObj == null) sliderObj = GameObject.Find("Slider");
 
             if (sliderObj != null) 
                 healthBar = sliderObj.GetComponent<Slider>();
-            else
-                Debug.LogWarning("Monster could not find 'HPBar' or 'Slider' in the scene.");
         }
     }
 
@@ -69,8 +64,16 @@ public class Monster : MonoBehaviour
         currentHealth -= damage;
         if (currentHealth < 0f) currentHealth = 0f;
 
-        StopAllCoroutines();
-        StartCoroutine(HitFeedback());
+        // --- FIX START ---
+        // Old Code: StopAllCoroutines(); (This killed the Boss Timer!)
+        
+        // New Code: Only stop the hit feedback animation
+        if (hitFeedbackCoroutine != null) 
+        {
+            StopCoroutine(hitFeedbackCoroutine);
+        }
+        hitFeedbackCoroutine = StartCoroutine(HitFeedback());
+        // --- FIX END ---
 
         UpdateUI();
 

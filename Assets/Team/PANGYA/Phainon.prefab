@@ -151,7 +151,7 @@ MonoBehaviour:
   currentHealth: 0
   healthBar: {fileID: 0}
   hpText: {fileID: 0}
-  maxBreakGauge: 50
+  maxBreakGauge: 10
   currentBreakGauge: 0
   breakRecoveryRate: 2
   breakDamageMultiplier: 2

@@ -19,6 +19,9 @@ public class BossMonster : Monster
     public float currentBreakGauge;
     public float breakRecoveryRate = 2f; 
     public float breakDamageMultiplier = 2.0f; 
+    
+    [Tooltip("How long the boss stays stunned when broken")]
+    public float breakStunDuration = 3.0f; 
 
     [Header("Boss UI (Auto-Wired)")]
     public Slider breakGaugeSlider;
@@ -40,10 +43,10 @@ public class BossMonster : Monster
         // Auto-Wire Break Gauge
         if (breakGaugeSlider == null)
         {
-            GameObject breakObj = GameObject.Find("BreakGauge"); // Ensure you have a slider named this!
+            GameObject breakObj = GameObject.Find("BreakGauge"); 
             if (breakObj != null) 
                 breakGaugeSlider = breakObj.GetComponent<Slider>();
-        }
+        }   
     }
 
     private void Update()
@@ -121,13 +124,21 @@ public class BossMonster : Monster
     {
         isBroken = true;
         currentBreakGauge = 0;
-        Debug.Log("BOSS BREAK!! Stunned!");
+        
+        Debug.Log(">>> BOSS BREAK!! Stunned! <<<");
 
-        yield return new WaitForSeconds(3.0f); 
+        // Countdown Logic
+        float timer = breakStunDuration;
+        while (timer > 0)
+        {
+            Debug.Log($"Boss recovering in: {timer} seconds...");
+            yield return new WaitForSeconds(1.0f); // Wait 1 second
+            timer -= 1.0f;
+        }
 
         isBroken = false;
         currentBreakGauge = maxBreakGauge; 
-        Debug.Log("Boss Recovered from Break.");
+        Debug.Log(">>> Boss Recovered from Break. Shield Active! <<<");
     }
 
     private void UpdateBossUI()
