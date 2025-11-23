@@ -48,6 +48,8 @@ public class KillCounter : MonoBehaviour
         //Reset kill count
         gameManager.AllKillCount = 0;
 
+        gameManager.canSpawn = true;
+
         SceneManager.LoadScene("FutureScene");
     }
 }

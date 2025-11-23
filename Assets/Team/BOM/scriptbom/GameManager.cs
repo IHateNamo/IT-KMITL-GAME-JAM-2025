@@ -10,12 +10,10 @@ public class GameManager : MonoBehaviour
     [Header("Prefabs - Past Scene")]
     public MinionMonster minionPrefab1;
     public BossMonster bossPrefab1;
-    public Transform spawnPoint1;
 
     [Header("Prefabs - Future Scene")]
     public MinionMonster minionPrefab2;
     public BossMonster bossPrefab2;
-    public Transform spawnPoint2;
 
     [Header("Game Progression")]
     public int level = 1;
@@ -39,37 +37,37 @@ public class GameManager : MonoBehaviour
         SpawnMinion();
     }
 
-    // -----------------------------
-    // Scene Setup
-    // -----------------------------
+    // ----------------------------------------------------------
+    // Scene Setup (Using Tags)
+    // ----------------------------------------------------------
     void SetupSceneSpawning()
     {
         string scene = SceneManager.GetActiveScene().name;
 
         if (scene == "PastScene")
         {
+            activeSpawnPoint = GameObject.FindGameObjectWithTag("PastSpawnPoint").transform;
             activeMinionPrefab = minionPrefab1;
             activeBossPrefab = bossPrefab1;
-            activeSpawnPoint = spawnPoint1;
         }
         else if (scene == "FutureScene")
         {
+            activeSpawnPoint = GameObject.FindGameObjectWithTag("FutureSpawnPoint").transform;
             activeMinionPrefab = minionPrefab2;
             activeBossPrefab = bossPrefab2;
-            activeSpawnPoint = spawnPoint2;
         }
         else
         {
             Debug.LogWarning("Scene not recognized. Using PastScene defaults.");
+            activeSpawnPoint = GameObject.FindGameObjectWithTag("PastSpawnPoint").transform;
             activeMinionPrefab = minionPrefab1;
             activeBossPrefab = bossPrefab1;
-            activeSpawnPoint = spawnPoint1;
         }
     }
 
-    // -----------------------------
-    // Monster Death Handling
-    // -----------------------------
+    // ----------------------------------------------------------
+    // Monster Death
+    // ----------------------------------------------------------
     public void OnMonsterDied(Monster monster)
     {
         if (monster is BossMonster)
@@ -99,9 +97,9 @@ public class GameManager : MonoBehaviour
             SpawnMinion();
     }
 
-    // -----------------------------
-    // Spawning Methods
-    // -----------------------------
+    // ----------------------------------------------------------
+    // Spawning
+    // ----------------------------------------------------------
     void SpawnMinion()
     {
         if (!canSpawn) return;
@@ -127,7 +125,6 @@ public class GameManager : MonoBehaviour
         else
             activeMonster = activeBossPrefab;
 
-        // Boss has 5x HP
         activeMonster.maxHealth = (100 * Mathf.Pow(1.2f, level - 1)) * 5;
 
         BossMonster bossScript = activeMonster as BossMonster;

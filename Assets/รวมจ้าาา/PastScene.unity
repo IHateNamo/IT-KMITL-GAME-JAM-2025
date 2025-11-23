@@ -2934,11 +2934,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   activeMonster: {fileID: 0}
   minionPrefab1: {fileID: 397864687974082999, guid: 0a94e1a30e1ca534e8e48ded5a1d3f03, type: 3}
-  bossPrefab1: {fileID: 1228403548035940662, guid: d18949dfebebf84409b1eb750a44f46a, type: 3}
-  spawnPoint1: {fileID: 1793710814}
-  minionPrefab2: {fileID: 0}
-  bossPrefab2: {fileID: 0}
-  spawnPoint2: {fileID: 0}
+  bossPrefab1: {fileID: 1228403548035940662, guid: cf848b095bb36304a856710100eb2f42, type: 3}
+  minionPrefab2: {fileID: 397864687974082999, guid: da961f87f7d26cc49b75b5d1421b3921, type: 3}
+  bossPrefab2: {fileID: 1228403548035940662, guid: cf848b095bb36304a856710100eb2f42, type: 3}
   level: 1
   minionsToKillForBoss: 5
   currentKillCount: 0
@@ -4547,7 +4545,7 @@ GameObject:
   - component: {fileID: 1793710814}
   m_Layer: 0
   m_Name: SpawnPoint
-  m_TagString: Untagged
+  m_TagString: PastSpawnPoint
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
