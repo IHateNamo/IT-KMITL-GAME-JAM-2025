@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 8432579090492902528}
   - component: {fileID: 8458277852138458540}
   - component: {fileID: 5031516562049703633}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Dragon
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -85,7 +85,7 @@ GameObject:
   m_Component:
   - component: {fileID: 3499356092317245470}
   - component: {fileID: 5607400516252198028}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Light 2D (1)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -175,7 +175,7 @@ GameObject:
   - component: {fileID: 3457358730909829372}
   - component: {fileID: 7632982029587578976}
   - component: {fileID: 1228403548035940662}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: DragonBoss
   m_TagString: Enemy
   m_Icon: {fileID: 0}
@@ -391,7 +391,7 @@ GameObject:
   - component: {fileID: 3896343528860358350}
   - component: {fileID: 2602904183436851753}
   - component: {fileID: 4949409712557035732}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: RoboticDragon_0
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -502,7 +502,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2001916957123304768}
   - component: {fileID: 3185442974584414606}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Light 2D
   m_TagString: Untagged
   m_Icon: {fileID: 0}

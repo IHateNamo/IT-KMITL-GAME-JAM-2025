@@ -59,5 +59,8 @@ TagManager:
   - name: Players
     uniqueID: 308882235
     locked: 0
+  - name: Ee
+    uniqueID: 1147872569
+    locked: 0
   m_RenderingLayers:
   - Default

@@ -17,7 +17,7 @@ GameObject:
   - component: {fileID: 3457358730909829372}
   - component: {fileID: 7632982029587578976}
   - component: {fileID: 1228403548035940662}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: SamuraiBoss
   m_TagString: Enemy
   m_Icon: {fileID: 0}
