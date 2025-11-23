@@ -1,45 +1,88 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using System.Collections;
 
 public class GameManager : MonoBehaviour
 {
     [Header("Spawning Settings")]
-    public Monster activeMonster; 
-    
-    [Header("Prefabs")]
-    public MinionMonster minionPrefab; 
-    public BossMonster bossPrefab;     
-    public Transform spawnPoint;
+    public Monster activeMonster;
+
+    [Header("Prefabs - Past Scene")]
+    public MinionMonster minionPrefab1;
+    public BossMonster bossPrefab1;
+    public Transform spawnPoint1;
+
+    [Header("Prefabs - Future Scene")]
+    public MinionMonster minionPrefab2;
+    public BossMonster bossPrefab2;
+    public Transform spawnPoint2;
 
     [Header("Game Progression")]
     public int level = 1;
-    public int minionsToKillForBoss = 5; // Adjust this in Inspector
-    
+    public int minionsToKillForBoss = 5;
+
     [SerializeField] private int currentKillCount = 0;
     private bool isBossActive = false;
 
     [Header("Kill Count")]
     public int AllKillCount = 0;
+    public bool canSpawn = true;
+
+    // Active set chosen by scene
+    private MinionMonster activeMinionPrefab;
+    private BossMonster activeBossPrefab;
+    private Transform activeSpawnPoint;
 
     private void Start()
     {
+        SetupSceneSpawning();
         SpawnMinion();
     }
 
+    // -----------------------------
+    // Scene Setup
+    // -----------------------------
+    void SetupSceneSpawning()
+    {
+        string scene = SceneManager.GetActiveScene().name;
+
+        if (scene == "PastScene")
+        {
+            activeMinionPrefab = minionPrefab1;
+            activeBossPrefab = bossPrefab1;
+            activeSpawnPoint = spawnPoint1;
+        }
+        else if (scene == "FutureScene")
+        {
+            activeMinionPrefab = minionPrefab2;
+            activeBossPrefab = bossPrefab2;
+            activeSpawnPoint = spawnPoint2;
+        }
+        else
+        {
+            Debug.LogWarning("Scene not recognized. Using PastScene defaults.");
+            activeMinionPrefab = minionPrefab1;
+            activeBossPrefab = bossPrefab1;
+            activeSpawnPoint = spawnPoint1;
+        }
+    }
+
+    // -----------------------------
+    // Monster Death Handling
+    // -----------------------------
     public void OnMonsterDied(Monster monster)
     {
         if (monster is BossMonster)
         {
             Debug.Log("Boss Defeated! Level Up!");
             level++;
-            currentKillCount = 0; 
+            currentKillCount = 0;
             isBossActive = false;
         }
         else
         {
             Debug.Log("Minion Defeated.");
             currentKillCount++;
-
             AllKillCount++;
         }
 
@@ -50,56 +93,45 @@ public class GameManager : MonoBehaviour
     {
         yield return new WaitForSeconds(0.5f);
 
-        // Check if we reached the kill count for Boss
         if (!isBossActive && currentKillCount >= minionsToKillForBoss)
-        {
             SpawnBoss();
-        }
         else
-        {
             SpawnMinion();
-        }
     }
 
+    // -----------------------------
+    // Spawning Methods
+    // -----------------------------
     void SpawnMinion()
     {
+        if (!canSpawn) return;
         if (activeMonster != null) activeMonster.gameObject.SetActive(false);
 
-        // Simple instantiation logic
-        if (minionPrefab.gameObject.scene.name == null) 
-        {
-             activeMonster = Instantiate(minionPrefab, spawnPoint.position, Quaternion.identity);
-        }
+        if (activeMinionPrefab.gameObject.scene.name == null)
+            activeMonster = Instantiate(activeMinionPrefab, activeSpawnPoint.position, Quaternion.identity);
         else
-        {
-             activeMonster = minionPrefab;
-        }
+            activeMonster = activeMinionPrefab;
 
-        // Stats Logic
         activeMonster.maxHealth = 100 * Mathf.Pow(1.2f, level - 1);
         activeMonster.ResetMonster();
-        
         isBossActive = false;
     }
 
     void SpawnBoss()
     {
+        if (!canSpawn) return;
         if (activeMonster != null) activeMonster.gameObject.SetActive(false);
 
-        if (bossPrefab.gameObject.scene.name == null)
-        {
-             activeMonster = Instantiate(bossPrefab, spawnPoint.position, Quaternion.identity);
-        }
+        if (activeBossPrefab.gameObject.scene.name == null)
+            activeMonster = Instantiate(activeBossPrefab, activeSpawnPoint.position, Quaternion.identity);
         else
-        {
-             activeMonster = bossPrefab;
-        }
+            activeMonster = activeBossPrefab;
 
-        // Boss Logic: 5x HP
-        activeMonster.maxHealth = (100 * Mathf.Pow(1.2f, level - 1)) * 5; 
-        
+        // Boss has 5x HP
+        activeMonster.maxHealth = (100 * Mathf.Pow(1.2f, level - 1)) * 5;
+
         BossMonster bossScript = activeMonster as BossMonster;
-        if(bossScript != null)
+        if (bossScript != null)
         {
             bossScript.maxBreakGauge = 50 + (level * 10);
         }
