@@ -1,55 +1,83 @@
 using System.Collections;
 using UnityEngine;
-using UnityEngine.Playables;
+using UnityEngine.Video;
 using UnityEngine.SceneManagement;
 
 public class KillCounter : MonoBehaviour
 {
     public GameManager gameManager;
 
-    public PlayableDirector startChangingScene;
+    public VideoPlayer videoPlayer;
+
+    public GameObject warpPlayer;
+
+    private bool isChangingScene = false;
+
+    public GameObject dontDestroyOnLoad;
 
     private void Update()
     {
-        if (SceneManager.GetActiveScene().name == "PastScene")
+        if (isChangingScene) return;
+
+        string scene = SceneManager.GetActiveScene().name;
+
+        // --- PAST SCENE LOGIC ---
+        if (scene == "PastScene")
         {
             if (gameManager.AllKillCount >= 18)
             {
                 gameManager.canSpawn = false;
-
-                StartCoroutine(changeSceneOne());
+                StartCoroutine(ChangeSceneOne());
+                isChangingScene = true;
             }
         }
-        else if (SceneManager.GetActiveScene().name == "FutureScene")
+
+        // --- FUTURE SCENE LOGIC ---
+        if (scene == "FutureScene")
         {
             if (gameManager.AllKillCount >= 24)
             {
-
+                gameManager.canSpawn = false;
+                StartCoroutine(ChangeToEnding());
+                isChangingScene = true;
             }
         }
     }
 
-    private IEnumerator changeSceneOne()
+    private IEnumerator ChangeSceneOne()
     {
-        if (startChangingScene != null)
+        if (videoPlayer != null)
         {
-            startChangingScene.Play();
-
-            while (startChangingScene.state == PlayState.Playing)
-            {
+            videoPlayer.Prepare();
+            while (!videoPlayer.isPrepared)
                 yield return null;
-            }
+
+            videoPlayer.Play();
+            while (videoPlayer.isPlaying)
+                yield return null;
         }
         else
         {
-            Debug.LogWarning("SAI CHANGESCENE DUOI");
+            Debug.LogWarning("VideoPlayer is missing.");
         }
 
-        //Reset kill count
         gameManager.AllKillCount = 0;
+        warpPlayer.SetActive(false);
+        SceneManager.LoadScene("FutureScene");
+
+        isChangingScene = false;
 
         gameManager.canSpawn = true;
+    }
 
-        SceneManager.LoadScene("FutureScene");
+    private IEnumerator ChangeToEnding()
+    {
+        // Wait a short moment (optional)
+        yield return new WaitForSeconds(1f);
+
+        Destroy(dontDestroyOnLoad);
+
+        SceneManager.LoadScene("Ending");
+
     }
 }

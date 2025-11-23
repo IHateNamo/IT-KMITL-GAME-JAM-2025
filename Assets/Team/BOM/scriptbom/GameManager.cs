@@ -151,5 +151,11 @@ public class GameManager : MonoBehaviour
     void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
         SetupSceneSpawning();
+        currentKillCount = 0;
+        isBossActive = false;
+
+        // Force new spawn after scene change
+        if (canSpawn)
+            SpawnMinion();
     }
 }
