@@ -3702,10 +3702,14 @@ MonoBehaviour:
   attackSpeedPercentPerLevel: 0.1
   baseUpgradeCost: 50
   upgradeCostGrowth: 1.2
+  attackVfxPrefab: {fileID: 624534760245318577, guid: 8382de1c13a3ab14a9ddcd7726de6a68, type: 3}
+  vfxSpawnPoint: {fileID: 0}
+  vfxTravelTime: 0.15
   isActive: 1
   showDebugLog: 1
   upgradeManager: {fileID: 846602075}
-  animator: {fileID: 0}
+  gameManager: {fileID: 846602077}
+  animator: {fileID: 1118216100}
   attackTriggerName: Attack
   idleStateName: Idle
 --- !u!95 &1118216100
@@ -3774,7 +3778,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: 21300000, guid: 706768d878fc9d74c9200ba554bf6434, type: 3}
+  m_Sprite: {fileID: 1816966733413027857, guid: f44dc5846e50d884b95401eeb397ad90, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -3794,7 +3798,7 @@ Transform:
   m_GameObject: {fileID: 1118216098}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -3.65, y: -0.9707029, z: -0.04504971}
+  m_LocalPosition: {x: -3.65, y: -2.38, z: -0.04504971}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

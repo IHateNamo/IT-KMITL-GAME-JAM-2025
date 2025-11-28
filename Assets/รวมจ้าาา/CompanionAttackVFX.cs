@@ -40,9 +40,13 @@ public class CompanionAttackVFX : MonoBehaviour
 
         float elapsed = 0f;
         Vector3 startPos = transform.position;
-        Vector3 targetPos = target != null ? target.transform.position : startPos;
+        Vector3 targetPos = startPos;
 
-        // เคลื่อนที่ไปหา target
+        if (target != null)
+        {
+            targetPos = target.transform.position;
+        }
+
         while (elapsed < travelTime)
         {
             elapsed += Time.deltaTime;
@@ -59,10 +63,9 @@ public class CompanionAttackVFX : MonoBehaviour
             yield return null;
         }
 
-        // ถึงเป้าหมาย -> ทำดาเมจ
         if (target != null && target.currentHealth > 0f)
         {
-            var bypass = target.GetComponent<MonsterDamageBypass>();
+            MonsterDamageBypass bypass = target.GetComponent<MonsterDamageBypass>();
             if (bypass != null)
             {
                 bypass.ApplyDirectDamage(damage);
@@ -78,7 +81,6 @@ public class CompanionAttackVFX : MonoBehaviour
 
     private void Start()
     {
-        // กันลืมลบในกรณีที่ target หายไปแล้ว
         Destroy(gameObject, safetyLifetime);
     }
 }

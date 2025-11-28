@@ -67,12 +67,17 @@ public class Companion : MonoBehaviour
     [Tooltip("ชื่อ State Idle ใน Animator (ถ้าอยากบังคับกลับไป Idle)")]
     public string idleStateName = "Idle";
 
+    // ---- NEW: minimum HP% for companion to keep attacking ----
+    [Header("Attack Limit")]
+    [Tooltip("หยุดโจมตีเมื่อ HP ของมอนสเตอร์ต่ำกว่าค่านี้ (เช่น 0.01 = 1%)")]
+    [Range(0f, 1f)]
+    public float minHpPercentToAttack = 0.01f;
+
     private float attackInterval;
     private float nextAttackTime;
 
     private void Awake()
     {
-        // Auto-find UpgradeManager ถ้าไม่เซ็ตใน Inspector
         if (upgradeManager == null)
         {
             upgradeManager = FindFirstObjectByType<UpgradeManager>();
@@ -82,7 +87,6 @@ public class Companion : MonoBehaviour
             }
         }
 
-        // Auto-find GameManager ถ้าไม่เซ็ต
         if (gameManager == null)
         {
             gameManager = FindFirstObjectByType<GameManager>();
@@ -97,7 +101,6 @@ public class Companion : MonoBehaviour
 
     private void OnEnable()
     {
-        // รีเซ็ตเวลาโจมตีเมื่อ Companion ถูกเปิดใช้งาน
         nextAttackTime = Time.time;
     }
 
@@ -110,6 +113,20 @@ public class Companion : MonoBehaviour
         if (target == null || target.currentHealth <= 0f)
             return;
 
+        // === CHECK HP PERCENT BEFORE ATTACK ===
+        float maxHP = Mathf.Max(1f, target.maxHealth); // กัน maxHealth = 0
+        float hpPercent = target.currentHealth / maxHP;
+
+        // ถ้า HP <= 1% (หรือค่าที่ตั้งใน minHpPercentToAttack) จะไม่ยิงแล้ว
+        if (hpPercent <= minHpPercentToAttack)
+        {
+            if (showDebugLog)
+            {
+                Debug.Log($"Companion: Stop attacking, target HP is below {minHpPercentToAttack * 100f:F2}%");
+            }
+            return;
+        }
+
         if (Time.time >= nextAttackTime)
         {
             PerformAttack(target);
@@ -119,12 +136,13 @@ public class Companion : MonoBehaviour
 
     #region Attack & Damage
 
-    /// <summary>
-    /// คำนวณดาเมจของ Companion ตามเลเวล และดาเมจของผู้เล่น (UpgradeManager)
-    /// </summary>
     private float CalculateDamage()
     {
-        float playerDamage = upgradeManager != null ? upgradeManager.GetCurrentDamage() : 1f;
+        float playerDamage = 1f;
+        if (upgradeManager != null)
+        {
+            playerDamage = upgradeManager.GetCurrentDamage();
+        }
 
         float levelBonus = damageMultiplierPerLevel * (level - 1);
         float finalMultiplier = baseDamageMultiplier + levelBonus;
@@ -136,12 +154,9 @@ public class Companion : MonoBehaviour
         return damage;
     }
 
-    /// <summary>
-    /// คำนวณความเร็วโจมตีตามเลเวล แล้วกลับเป็น interval
-    /// </summary>
     private void RecalculateAttackInterval()
     {
-        float bonusPercent = attackSpeedPercentPerLevel * (level - 1); // 0.1 => +10% ต่อเลเวล
+        float bonusPercent = attackSpeedPercentPerLevel * (level - 1);
         float speedMultiplier = 1f + bonusPercent;
 
         float finalAPS = Mathf.Max(0.1f, baseAttacksPerSecond * speedMultiplier);
@@ -153,40 +168,54 @@ public class Companion : MonoBehaviour
         if (target == null || target.currentHealth <= 0f)
             return;
 
+        // ป้องกันกรณีอื่น ๆ ที่เรียก PerformAttack ตรง ๆ
+        float maxHP = Mathf.Max(1f, target.maxHealth);
+        float hpPercent = target.currentHealth / maxHP;
+        if (hpPercent <= minHpPercentToAttack)
+        {
+            if (showDebugLog)
+            {
+                Debug.Log($"Companion: PerformAttack canceled, target HP is below {minHpPercentToAttack * 100f:F2}%");
+            }
+            return;
+        }
+
         float damage = CalculateDamage();
 
-        // เล่นอนิเมชัน Companion ก่อน
         PlayAttackAnimation();
 
-        // ถ้ามี VFX prefab ให้ VFX เป็นคนทำดาเมจแทน
         if (attackVfxPrefab != null)
         {
-            Vector3 spawnPos = vfxSpawnPoint != null ? vfxSpawnPoint.position : transform.position;
-            CompanionAttackVFX vfx = Instantiate(attackVfxPrefab, spawnPos, Quaternion.identity);
+            Vector3 spawnPos = transform.position;
+            if (vfxSpawnPoint != null)
+                spawnPos = vfxSpawnPoint.position;
 
-            // ส่งเป้าหมาย + ดาเมจ + เวลาเดินทางไปให้ VFX จัดการเอง
+            CompanionAttackVFX vfx = Instantiate(attackVfxPrefab, spawnPos, Quaternion.identity);
             vfx.Initialize(target, damage, vfxTravelTime);
 
             if (showDebugLog)
             {
-                Debug.Log($"🧭 Companion: Spawn VFX -> target {target.name}, dmg {damage:F1}, Lv.{level}");
+                Debug.Log("Companion: Spawn VFX -> target " + target.name + ", dmg " + damage.ToString("F1") + ", Lv." + level);
             }
         }
         else
         {
-            // Fallback: ถ้าไม่มี VFX ก็ยิงดาเมจตรง ๆ
-            var bypass = target.GetComponent<MonsterDamageBypass>();
+            MonsterDamageBypass bypass = target.GetComponent<MonsterDamageBypass>();
             if (bypass != null)
             {
                 bypass.ApplyDirectDamage(damage);
                 if (showDebugLog)
-                    Debug.Log($"🧭 Companion: Direct BYPASS dmg {damage:F1} (no VFX) Lv.{level}");
+                {
+                    Debug.Log("Companion: Direct BYPASS dmg " + damage.ToString("F1") + " (no VFX) Lv." + level);
+                }
             }
             else
             {
                 target.TakeDamage(damage);
                 if (showDebugLog)
-                    Debug.LogWarning($"Companion: Direct TakeDamage {damage:F1} (no VFX, no bypass) Lv.{level}");
+                {
+                    Debug.LogWarning("Companion: Direct TakeDamage " + damage.ToString("F1") + " (no VFX, no bypass) Lv." + level);
+                }
             }
         }
     }
@@ -242,8 +271,8 @@ public class Companion : MonoBehaviour
 
         if (showDebugLog)
         {
-            Debug.Log($"✨ Companion Upgrade => Lv.{level}, " +
-                      $"Damage Multiplier Now ≈ {baseDamageMultiplier + damageMultiplierPerLevel * (level - 1):F2}");
+            float mult = baseDamageMultiplier + damageMultiplierPerLevel * (level - 1);
+            Debug.Log("Companion Upgrade => Lv." + level + ", Damage Multiplier Now ≈ " + mult.ToString("F2"));
         }
     }
 
@@ -257,7 +286,7 @@ public class Companion : MonoBehaviour
 
         if (showDebugLog)
         {
-            Debug.Log($"Companion: Active = {isActive}");
+            Debug.Log("Companion: Active = " + isActive);
         }
 
         if (!isActive)
