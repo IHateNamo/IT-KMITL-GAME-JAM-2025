@@ -1074,7 +1074,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Iron Dragon
+  m_text: MYTHICAL SAMURAI
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 0211e5e5b6369e24b8f0cbc05472c326, type: 2}
   m_sharedMaterial: {fileID: -4243042919728846977, guid: 0211e5e5b6369e24b8f0cbc05472c326, type: 2}

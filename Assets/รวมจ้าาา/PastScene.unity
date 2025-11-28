@@ -1267,7 +1267,7 @@ MonoBehaviour:
   maxLevel: 10
   baseDamageMultiplier: 0.3
   damageMultiplierPerLevel: 0.05
-  baseAttacksPerSecond: 1
+  baseAttacksPerSecond: 2
   attackSpeedPercentPerLevel: 0.1
   baseUpgradeCost: 50
   upgradeCostGrowth: 1.2
@@ -1516,6 +1516,7 @@ RectTransform:
   - {fileID: 461929950}
   - {fileID: 1954487404}
   - {fileID: 239634292}
+  - {fileID: 747183944}
   m_Father: {fileID: 1462129286}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -1890,7 +1891,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   companion: {fileID: 1898293698}
   companionGameObject: {fileID: 1898293696}
-  buyCost: 5000
+  buyCost: 1000
   isPurchased: 0
   buyButton: {fileID: 1492176980}
   buttonText: {fileID: 784731877}
@@ -2918,14 +2919,14 @@ RectTransform:
   m_GameObject: {fileID: 747183941}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 0.74672973, y: 0.74672973, z: 0.74672973}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 1208968196}
+  m_Father: {fileID: 435348527}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -170.56494, y: -886.79565}
+  m_AnchoredPosition: {x: -785.7976, y: 233.4491}
   m_SizeDelta: {x: 387.96, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &775230352
@@ -6054,7 +6055,6 @@ RectTransform:
   - {fileID: 1415342975}
   - {fileID: 2038115592}
   - {fileID: 1422988552}
-  - {fileID: 747183944}
   m_Father: {fileID: 435348527}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 1}
@@ -8189,7 +8189,7 @@ MonoBehaviour:
   baseDamageMultiplier: 0.3
   damageMultiplierPerLevel: 0.05
   baseAttacksPerSecond: 1
-  attackSpeedPercentPerLevel: 0.1
+  attackSpeedPercentPerLevel: 0.162
   baseUpgradeCost: 50
   upgradeCostGrowth: 1.2
   attackVfxPrefab: {fileID: 624534760245318577, guid: 8382de1c13a3ab14a9ddcd7726de6a68, type: 3}
@@ -8240,7 +8240,7 @@ Animator:
   m_GameObject: {fileID: 1898293696}
   m_Enabled: 1
   m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 9100000, guid: 5ee0a94e162212641bb358975e267db6, type: 2}
+  m_Controller: {fileID: 9100000, guid: 80e0bba421f58f04eb20c88fc2c581c9, type: 2}
   m_CullingMode: 0
   m_UpdateMode: 0
   m_ApplyRootMotion: 0
