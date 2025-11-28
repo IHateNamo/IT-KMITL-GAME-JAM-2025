@@ -1275,12 +1275,12 @@ MonoBehaviour:
   friendshipLevel: 1
   maxFriendshipLevel: 10
   currentFriendshipExp: 0
-  expPerLevel: 100
+  expPerLevel: 1
   friendshipDamageBonusPerLevel: 0.05
   friendshipNameText: {fileID: 0}
   friendshipLevelText: {fileID: 0}
   friendshipExpSlider: {fileID: 0}
-  expOnMonsterKill: 20
+  expOnMonsterKill: 1
   expOnSCombo: 50
   attackVfxPrefab: {fileID: 624534760245318577, guid: 8382de1c13a3ab14a9ddcd7726de6a68, type: 3}
   vfxSpawnPoint: {fileID: 0}
@@ -8201,9 +8201,9 @@ MonoBehaviour:
   level: 1
   maxLevel: 10
   baseDamageMultiplier: 0.3
-  damageMultiplierPerLevel: 0.05
+  damageMultiplierPerLevel: 0.288
   baseAttacksPerSecond: 1
-  attackSpeedPercentPerLevel: 0.162
+  attackSpeedPercentPerLevel: 0.356
   baseUpgradeCost: 50
   upgradeCostGrowth: 1.2
   friendName: Gear
@@ -8215,7 +8215,7 @@ MonoBehaviour:
   friendshipNameText: {fileID: 0}
   friendshipLevelText: {fileID: 0}
   friendshipExpSlider: {fileID: 0}
-  expOnMonsterKill: 20
+  expOnMonsterKill: 1
   expOnSCombo: 50
   attackVfxPrefab: {fileID: 624534760245318577, guid: 8382de1c13a3ab14a9ddcd7726de6a68, type: 3}
   vfxSpawnPoint: {fileID: 0}
