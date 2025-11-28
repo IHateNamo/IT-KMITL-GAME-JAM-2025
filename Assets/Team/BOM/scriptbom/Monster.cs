@@ -33,7 +33,7 @@ public class Monster : MonoBehaviour
 
         if (healthBar == null)
         {
-            GameObject sliderObj = GameObject.Find("HPBar");
+            GameObject sliderObj = GameObject.Find("HealthBar");
             if (sliderObj == null) sliderObj = GameObject.Find("Slider");
 
             if (sliderObj != null) 
