@@ -855,8 +855,8 @@ RectTransform:
   m_LocalScale: {x: 0, y: 0, z: 0}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 939107946}
   - {fileID: 97063211}
+  - {fileID: 939107946}
   - {fileID: 648545971}
   - {fileID: 2078327286}
   - {fileID: 1956827675}
@@ -1156,6 +1156,9 @@ MonoBehaviour:
   hitVfxPrefab: {fileID: 0}
   finalHitVfxPrefab: {fileID: 0}
   vfxLifetime: 1
+  cursorTrailPrefab: {fileID: 0}
+  slashTimelinePrefab: {fileID: 0}
+  slashTimelineLifetime: 1.2
 --- !u!114 &966785959
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2055,12 +2058,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   activeMonster: {fileID: 0}
-  minionPrefab: {fileID: 4226751723831383678, guid: b066e1b2ff888654d8d4e25baff135d5, type: 3}
-  bossPrefab: {fileID: 4174946454276553592, guid: a8ab49c590adbc4429aaa39d67405a71, type: 3}
-  spawnPoint: {fileID: 340911054}
+  minionPrefab1: {fileID: 0}
+  bossPrefab1: {fileID: 0}
+  minionPrefab2: {fileID: 0}
+  bossPrefab2: {fileID: 0}
   level: 1
   minionsToKillForBoss: 5
   currentKillCount: 0
+  AllKillCount: 0
+  canSpawn: 1
 --- !u!114 &2122307692
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2080,6 +2086,17 @@ MonoBehaviour:
   ultimateProgression: {fileID: 2122307694}
   ultimateProgressionView: {fileID: 0}
   mainCamera: {fileID: 0}
+  primaryAnimator: {fileID: 0}
+  primaryAttackTriggerName: Attack
+  playerSfxSource: {fileID: 0}
+  playerClickSfx: {fileID: 0}
+  clickVfxPrefab: {fileID: 0}
+  clickVfxSpawnPoint: {fileID: 0}
+  clickVfxLifetime: 1
+  attackTimelinePrefab: {fileID: 0}
+  attackTimelineSpawnPoint: {fileID: 0}
+  attackTimelineLifetime: 2
+  extraAnimators: []
 --- !u!4 &2122307693
 Transform:
   m_ObjectHideFlags: 0
