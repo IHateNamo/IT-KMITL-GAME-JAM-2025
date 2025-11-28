@@ -3,75 +3,72 @@ using UnityEngine.UI;
 
 public class UpgradePanelToggle : MonoBehaviour
 {
-    [Header("UI Panel with CanvasGroup")]
-    public GameObject upgradePanel; // ← ลาก UI Panel (not Canvas!)
-    
-    [Header("Optional")]
-    public GameObject openButton;
-    public Button closeButton;
+    [Header("References")]
+    public GameObject upgradePanel;
     
     private CanvasGroup canvasGroup;
+    private Toggle toggle;
     
     private void Awake()
     {
-        if (openButton == null)
-            openButton = gameObject;
+        // Get Toggle component
+        toggle = GetComponent<Toggle>();
         
-        if (upgradePanel == null)
+        if (toggle == null)
         {
-            Debug.LogError("❌ UpgradePanel is NULL! Drag the UI Panel here!");
+            Debug.LogError("❌ Toggle component not found! This script must be on a Toggle GameObject!");
             return;
         }
         
-        // Get or Add CanvasGroup to the UI Panel
-        canvasGroup = upgradePanel.GetComponent<CanvasGroup>();
-        if (canvasGroup == null)
+        // Setup CanvasGroup
+        if (upgradePanel != null)
         {
-            canvasGroup = upgradePanel.AddComponent<CanvasGroup>();
-            Debug.Log("✅ Added CanvasGroup to UI Panel");
+            canvasGroup = upgradePanel.GetComponent<CanvasGroup>();
+            if (canvasGroup == null)
+            {
+                canvasGroup = upgradePanel.AddComponent<CanvasGroup>();
+            }
+        }
+        else
+        {
+            Debug.LogError("❌ UpgradePanel is null! Drag UpgradePanel into Inspector!");
         }
         
-        if (closeButton != null)
-            closeButton.onClick.AddListener(CloseUpgradePanel);
+        // Listen to toggle changes
+        toggle.onValueChanged.AddListener(OnToggleChanged);
     }
     
     private void Start()
     {
-        CloseUpgradePanel();
+        // Set initial state (closed)
+        toggle.isOn = false;
+        UpdatePanelVisibility(false);
     }
     
-    public void OpenUpgradePanel()
+    private void OnToggleChanged(bool isOn)
     {
-        Debug.Log("🔵 Opening Panel...");
+        UpdatePanelVisibility(isOn);
+    }
+    
+    private void UpdatePanelVisibility(bool show)
+    {
+        if (canvasGroup == null) return;
         
-        if (canvasGroup == null)
+        if (show)
         {
-            Debug.LogError("❌ CanvasGroup is NULL!");
-            return;
+            // Show panel
+            canvasGroup.alpha = 1f;
+            canvasGroup.interactable = true;
+            canvasGroup.blocksRaycasts = true;
+            Debug.Log("✅ Panel Opened");
         }
-        
-        // Show the panel
-        canvasGroup.alpha = 1f;
-        canvasGroup.interactable = true;
-        canvasGroup.blocksRaycasts = true;
-        
-        Debug.Log($"✅ Panel Opened! Alpha = {canvasGroup.alpha}");
-        
-        // Hide open button
-        if (openButton != null)
-            openButton.SetActive(false);
-    }
-    
-    public void CloseUpgradePanel()
-    {
-        if (canvasGroup != null)
+        else
         {
+            // Hide panel
             canvasGroup.alpha = 0f;
             canvasGroup.interactable = false;
             canvasGroup.blocksRaycasts = false;
+            Debug.Log("✅ Panel Closed");
         }
-        
-        if (openButton != null)
-            openButton.SetActive(true);
     }
 }
