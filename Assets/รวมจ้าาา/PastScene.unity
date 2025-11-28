@@ -4105,6 +4105,10 @@ MonoBehaviour:
   attackVfxPrefab: {fileID: 624534760245318577, guid: 8382de1c13a3ab14a9ddcd7726de6a68, type: 3}
   vfxSpawnPoint: {fileID: 0}
   vfxTravelTime: 0.15
+  comboHeavyVfxPrefab: {fileID: 0}
+  comboSuperVfxPrefab: {fileID: 0}
+  signatureVfxPrefab: {fileID: 0}
+  ultCoopVfxPrefab: {fileID: 0}
   isActive: 1
   showDebugLog: 1
   upgradeManager: {fileID: 846602075}
@@ -4112,7 +4116,30 @@ MonoBehaviour:
   animator: {fileID: 1118216100}
   attackTriggerName: Attack
   idleStateName: Idle
-  minHpPercentToAttack: 0.01
+  comboHeavyStateName: ComboHeavy
+  comboSuperStateName: ComboSuper
+  signatureStateName: Signature
+  ultCoopStateName: UltCoop
+  happyStateName: Happy
+  berserkStateName: Berserk
+  audioSource: {fileID: 0}
+  attackSfx: {fileID: 0}
+  comboHeavySfx: {fileID: 0}
+  comboSuperSfx: {fileID: 0}
+  signatureSfx: {fileID: 0}
+  ultCoopSfx: {fileID: 0}
+  minHpPercentToAttack: 0.221
+  enableUltCollab: 1
+  coopUltTimeline: {fileID: 1762957601}
+  ultBonusDamageMultiplier: 3
+  ultVfxTravelTime: 0.25
+  enableComboSynergy: 1
+  comboForHeavyShot: 20
+  comboForSuperShot: 50
+  comboForSignatureShot: 100
+  heavyShotMultiplier: 1.6
+  superShotMultiplier: 2.3
+  signatureShotMultiplier: 3.5
 --- !u!95 &1118216100
 Animator:
   serializedVersion: 7
