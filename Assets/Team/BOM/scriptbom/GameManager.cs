@@ -26,6 +26,13 @@ public class GameManager : MonoBehaviour
     public int AllKillCount = 0;
     public bool canSpawn = true;
 
+    // -------------------------------
+    // COMPANIONS (Buddy System link)
+    // -------------------------------
+    [Header("Companions (Buddy System)")]
+    [Tooltip("ลาก Companion ทั้งหมดที่อยากให้ได้ EXP ตอนมอนตายมาวางที่นี่")]
+    public Companion[] companions;
+
     // Active set chosen by scene
     private MinionMonster activeMinionPrefab;
     private BossMonster activeBossPrefab;
@@ -84,7 +91,26 @@ public class GameManager : MonoBehaviour
             AllKillCount++;
         }
 
+        // ⭐ แจ้ง Companion ว่ามอนตายแล้ว → ได้ Friendship EXP
+        GrantCompanionsKillExp();
+
         StartCoroutine(SpawnNextMonsterRoutine());
+    }
+
+    /// <summary>
+    /// ให้ Companion ทุกตัวได้ EXP จากการฆ่ามอน 1 ตัว
+    /// </summary>
+    private void GrantCompanionsKillExp()
+    {
+        if (companions == null) return;
+
+        for (int i = 0; i < companions.Length; i++)
+        {
+            Companion c = companions[i];
+            if (c == null) continue;
+
+            c.OnMonsterKilled();
+        }
     }
 
     IEnumerator SpawnNextMonsterRoutine()

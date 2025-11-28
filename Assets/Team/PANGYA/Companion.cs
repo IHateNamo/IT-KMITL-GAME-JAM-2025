@@ -1,15 +1,20 @@
 using System.Collections;
 using UnityEngine;
 using UnityEngine.Playables;
+using UnityEngine.UI;
+using TMPro;
 
 /// <summary>
 /// เพื่อนร่วมสู้ (Companion) ที่ยิงมอนสเตอร์ให้อัตโนมัติ
 /// ใช้ GameManager.activeMonster เป็นเป้าหมายหลัก
-/// สร้าง VFX ให้บินไปหาเป้าหมายแล้วทำดาเมจ
-/// มีระบบคอมโบซินเนอร์จี้ + อัลติคอลแลป + SFX
+/// มี: คอมโบซินเนอร์จี้ + อัลติคอลแลป + SFX/VFX + Friendship Level + UI
 /// </summary>
 public class Companion : MonoBehaviour
 {
+    // -------------------------
+    //  BASE STATS (ค่าพื้นฐานของเพื่อน)
+    // -------------------------
+    
     [Header("Base Stats")]
     [Tooltip("เลเวลเริ่มต้นของเพื่อน (Companion)")]
     public int level = 1;
@@ -39,6 +44,52 @@ public class Companion : MonoBehaviour
     [Tooltip("ตัวคูณเพิ่มราคาอัปเกรดต่อเลเวล (เช่น 1.2 = แพงขึ้น 20% ทุกเลเวล)")]
     public float upgradeCostGrowth = 1.2f;
 
+    // ======================================================
+    // FRIENDSHIP SYSTEM (ระบบความสนิทของเพื่อน)
+    // ======================================================
+
+    [Header("Friendship (Buddy System)")]
+    [Tooltip("ชื่อเพื่อน เช่น Gear / Bolt / Nova")]
+    public string friendName = "Gear";
+
+    [Tooltip("เลเวลความสนิทเริ่มต้น")]
+    public int friendshipLevel = 1;
+
+    [Tooltip("เลเวลความสนิทสูงสุด")]
+    public int maxFriendshipLevel = 10;
+
+    [Tooltip("Exp ปัจจุบันของเลเวลนี้")]
+    public int currentFriendshipExp = 0;
+
+    [Tooltip("Exp ที่ต้องใช้ต่อ 1 เลเวล")]
+    public int expPerLevel = 100;
+
+    [Tooltip("ดาเมจบัฟต่อ 1 เลเวลความสนิท เช่น 0.05 = +5% ต่อ Lv")]
+    [Range(0f, 1f)]
+    public float friendshipDamageBonusPerLevel = 0.05f;
+
+    // UI ที่เอาไว้แสดงชื่อ, เลเวล, และ Exp bar
+    [Header("Friendship UI (Optional)")]
+    [Tooltip("Text ชื่อเพื่อน (เช่น Gear)")]
+    public TextMeshProUGUI friendshipNameText;
+
+    [Tooltip("Text แสดง Level เช่น Lv.3")]
+    public TextMeshProUGUI friendshipLevelText;
+
+    [Tooltip("Slider แสดง Exp ความสนิท")]
+    public Slider friendshipExpSlider;
+
+    [Header("Friendship Rewards")]
+    [Tooltip("EXP ที่ได้เมื่อฆ่ามอน 1 ตัว")]
+    public int expOnMonsterKill = 20;
+
+    [Tooltip("EXP ที่ได้เมื่อทำคอมโบระดับ S (Signature)")]
+    public int expOnSCombo = 50;
+
+    // ======================================================
+    // VFX / SFX (สำหรับโจมตีธรรมดา / คอมโบ / อัลติ)
+    // ======================================================
+
     [Header("VFX Settings (Normal Attack)")]
     [Tooltip("Prefab ของ VFX ที่ใช้ตอน Companion โจมตี (ต้องมี CompanionAttackVFX)")]
     public CompanionAttackVFX attackVfxPrefab;
@@ -56,8 +107,8 @@ public class Companion : MonoBehaviour
     public CompanionAttackVFX ultCoopVfxPrefab;
 
     [Header("Runtime State")]
-    [SerializeField] private bool isActive = true;
-    [SerializeField] private bool showDebugLog = true;
+    [SerializeField] private bool isActive = true;     // ใช้เปิด/ปิดเพื่อน (ตรรกะภายใน)
+    [SerializeField] private bool showDebugLog = true; // เปิด/ปิด debug log
 
     [Header("References")]
     [Tooltip("ใช้สำหรับอ่านดาเมจปัจจุบันของผู้เล่น")]
@@ -75,6 +126,7 @@ public class Companion : MonoBehaviour
     [Tooltip("ชื่อ State Idle ใน Animator (ถ้าอยากบังคับกลับไป Idle)")]
     public string idleStateName = "Idle";
 
+    // state ต่าง ๆ ใน Animator สำหรับคอมโบ / อัลติ / อารมณ์
     [Header("Animator States (Combo / Ult / Emotion)")]
     public string comboHeavyStateName = "ComboHeavy";
     public string comboSuperStateName = "ComboSuper";
@@ -83,6 +135,7 @@ public class Companion : MonoBehaviour
     public string happyStateName = "Happy";
     public string berserkStateName = "Berserk";
 
+    // เสียงต่าง ๆ
     [Header("SFX")]
     public AudioSource audioSource;
     public AudioClip attackSfx;
@@ -91,13 +144,19 @@ public class Companion : MonoBehaviour
     public AudioClip signatureSfx;
     public AudioClip ultCoopSfx;
 
-    // ---- Limit HP ที่ Companion จะยอมยิง ----
+    // ======================================================
+    // HP LIMIT (ไม่โจมตีถ้าเลือดมอนต่ำกว่า % ที่กำหนด)
+    // ======================================================
+
     [Header("Attack Limit")]
     [Tooltip("หยุดโจมตีเมื่อ HP ของมอนสเตอร์ต่ำกว่าค่านี้ (เช่น 0.01 = 1%)")]
     [Range(0f, 1f)]
     public float minHpPercentToAttack = 0.01f;
 
-    // ---- Ult Collaboration ----
+    // ======================================================
+    // ULT COLLAB (อัลติร่วมกับผู้เล่น)
+    // ======================================================
+
     [Header("Ultimate Collaboration")]
     [Tooltip("เปิด / ปิด ระบบอัลติร่วมกับผู้เล่น")]
     public bool enableUltCollab = true;
@@ -111,7 +170,10 @@ public class Companion : MonoBehaviour
     [Tooltip("ระยะเวลาเดินทางของ VFX ตอน Ult ร่วม (ถ้าตั้ง ≤ 0 จะใช้ vfxTravelTime ปกติ)")]
     public float ultVfxTravelTime = 0.25f;
 
-    // ---- Combo Synergy ----
+    // ======================================================
+    // COMBO SYNERGY (ยิงสกิลพิเศษตามคอมโบผู้เล่น)
+    // ======================================================
+
     [Header("Combo Synergy")]
     public bool enableComboSynergy = true;
 
@@ -129,13 +191,16 @@ public class Companion : MonoBehaviour
     public float superShotMultiplier = 2.3f;
     public float signatureShotMultiplier = 3.5f;
 
+    // flag ว่าในคอมโบชุดนี้ใช้สกิลไปแล้วหรือยัง (กันยิงซ้ำ)
     private bool heavyShotUsedThisCombo;
     private bool superShotUsedThisCombo;
     private bool signatureShotUsedThisCombo;
 
+    // จัดการความถี่การยิง
     private float attackInterval;
     private float nextAttackTime;
 
+    // enum ใช้ระบุประเภท combo shot แบบอ่านง่าย
     private enum ComboShotType
     {
         Heavy,
@@ -143,8 +208,12 @@ public class Companion : MonoBehaviour
         Signature
     }
 
+    // ------------------------------------------------------
+    // Awake: auto-find reference และคำนวณค่าเริ่มต้น
+    // ------------------------------------------------------
     private void Awake()
     {
+        // หา UpgradeManager ถ้าไม่ได้ลากจาก Inspector
         if (upgradeManager == null)
         {
             upgradeManager = FindFirstObjectByType<UpgradeManager>();
@@ -154,6 +223,7 @@ public class Companion : MonoBehaviour
             }
         }
 
+        // หา GameManager ถ้าไม่ได้ลากจาก Inspector
         if (gameManager == null)
         {
             gameManager = FindFirstObjectByType<GameManager>();
@@ -163,19 +233,31 @@ public class Companion : MonoBehaviour
             }
         }
 
+        // หา AudioSource ถ้ายังไม่ได้ใส่
         if (audioSource == null)
         {
             audioSource = GetComponent<AudioSource>();
         }
 
+        // คำนวณความถี่ในการยิงครั้งแรก
         RecalculateAttackInterval();
+
+        // อัปเดต UI Friendship รอบแรก
+        UpdateFriendshipUI();
     }
 
+    // ------------------------------------------------------
+    // OnEnable: reset timer, update UI
+    // ------------------------------------------------------
     private void OnEnable()
     {
         nextAttackTime = Time.time;
+        UpdateFriendshipUI();
     }
 
+    // ------------------------------------------------------
+    // Update: ยิงมอนเมื่อถึงเวลา + เช็ค HP %
+    // ------------------------------------------------------
     private void Update()
     {
         if (!isActive) return;
@@ -185,11 +267,11 @@ public class Companion : MonoBehaviour
         if (target == null || target.currentHealth <= 0f)
             return;
 
-        // === CHECK HP PERCENT BEFORE ATTACK ===
-        float maxHP = Mathf.Max(1f, target.maxHealth); // กัน maxHealth = 0
+        // หาร % HP ของมอน
+        float maxHP = Mathf.Max(1f, target.maxHealth);
         float hpPercent = target.currentHealth / maxHP;
 
-        // ถ้า HP <= 1% (หรือค่าที่ตั้งใน minHpPercentToAttack) จะไม่ยิงแล้ว
+        // ถ้า HP ต่ำกว่า limit (เช่น 1%) ให้หยุดยิง และให้ผู้เล่นไปเก็บเอง
         if (hpPercent <= minHpPercentToAttack)
         {
             if (showDebugLog)
@@ -199,6 +281,7 @@ public class Companion : MonoBehaviour
             return;
         }
 
+        // ยิงเมื่อถึงเวลา
         if (Time.time >= nextAttackTime)
         {
             PerformAttack(target);
@@ -206,26 +289,45 @@ public class Companion : MonoBehaviour
         }
     }
 
-    #region Attack & Damage
+    // ======================================================
+    // DAMAGE + FRIENDSHIP (คำนวณดาเมจของเพื่อน)
+    // ======================================================
 
+    /// <summary>
+    /// คำนวณดาเมจของ Companion โดยอิงจากดาเมจผู้เล่น + เลเวลเพื่อน + ความสนิท
+    /// </summary>
     private float CalculateDamage()
     {
+        // ดาเมจเบสจากผู้เล่น (อ่านจาก UpgradeManager)
         float playerDamage = 1f;
         if (upgradeManager != null)
         {
             playerDamage = upgradeManager.GetCurrentDamage();
         }
 
+        // Bonus จากเลเวลของ Companion เอง
         float levelBonus = damageMultiplierPerLevel * (level - 1);
-        float finalMultiplier = baseDamageMultiplier + levelBonus;
+        float baseMult = baseDamageMultiplier + levelBonus;
 
-        if (finalMultiplier < 0f)
-            finalMultiplier = 0f;
+        if (baseMult < 0f)
+            baseMult = 0f;
 
+        // ⭐ Bonus จาก Friendship Level
+        int effectiveFriendLv = Mathf.Clamp(friendshipLevel, 1, maxFriendshipLevel);
+        float friendshipBonusPercent = friendshipDamageBonusPerLevel * (effectiveFriendLv - 1);
+        float friendshipMultiplier = 1f + friendshipBonusPercent;
+
+        // รวม multiplier ทั้งหมด
+        float finalMultiplier = baseMult * friendshipMultiplier;
+
+        // ดาเมจสุดท้าย = ดาเมจผู้เล่น * multiplier
         float damage = playerDamage * finalMultiplier;
         return damage;
     }
 
+    /// <summary>
+    /// คำนวณระยะห่างระหว่างการยิง (ใช้ APS) ทุกครั้งที่เลเวลเปลี่ยน
+    /// </summary>
     private void RecalculateAttackInterval()
     {
         float bonusPercent = attackSpeedPercentPerLevel * (level - 1);
@@ -235,12 +337,15 @@ public class Companion : MonoBehaviour
         attackInterval = 1f / finalAPS;
     }
 
+    /// <summary>
+    /// ยิงหนึ่งครั้งไปที่มอน: เช็ค HP, คำนวณดาเมจ, เล่นอนิเมชัน, Spawn VFX
+    /// </summary>
     private void PerformAttack(Monster target)
     {
         if (target == null || target.currentHealth <= 0f)
             return;
 
-        // ป้องกันกรณีอื่น ๆ ที่เรียก PerformAttack ตรง ๆ
+        // กันไม่ให้เรียกตรง ๆ แล้วไปยิงตอน HP ต่ำกว่า 1%
         float maxHP = Mathf.Max(1f, target.maxHealth);
         float hpPercent = target.currentHealth / maxHP;
         if (hpPercent <= minHpPercentToAttack)
@@ -254,13 +359,18 @@ public class Companion : MonoBehaviour
 
         float damage = CalculateDamage();
 
+        // เล่นอนิเมชันโจมตี + SFX
         PlayAttackAnimation();
         PlaySfx(attackSfx);
 
-        // ปกติใช้ VFX ปกติ
+        // สร้าง VFX หรือยิงดาเมจตรงถ้าไม่มี VFX
         SpawnAttackVfx(target, attackVfxPrefab, damage, vfxTravelTime, logPrefix: "Normal");
     }
 
+    /// <summary>
+    /// ฟังก์ชันกลางสำหรับสร้าง VFX ที่บินไปหา Monster แล้วทำดาเมจ
+    /// ถ้าไม่มี prefab จะยิงดาเมจตรง (bypass หรือ TakeDamage)
+    /// </summary>
     private void SpawnAttackVfx(
         Monster target,
         CompanionAttackVFX prefab,
@@ -272,28 +382,30 @@ public class Companion : MonoBehaviour
 
         if (prefab != null)
         {
+            // ตำแหน่ง spawn (ใช้ตัวเพื่อนหรือจุดยิงเฉพาะ)
             Vector3 spawnPos = transform.position;
             if (vfxSpawnPoint != null)
                 spawnPos = vfxSpawnPoint.position;
 
+            // สร้าง VFX และส่งเป้าหมาย + ดาเมจให้มัน
             CompanionAttackVFX vfx = Instantiate(prefab, spawnPos, Quaternion.identity);
             vfx.Initialize(target, damage, travelTime > 0f ? travelTime : vfxTravelTime);
 
             if (showDebugLog)
             {
-                Debug.Log($"Companion [{logPrefix}]: Spawn VFX -> target {target.name}, dmg {damage:F1}, Lv.{level}");
+                Debug.Log($"Companion [{logPrefix}]: Spawn VFX -> target {target.name}, dmg {damage:F1}, Lv.{level}, F-Lv.{friendshipLevel}");
             }
         }
         else
         {
-            // Fallback: ยิงดาเมจตรง
+            // ถ้าไม่มี VFX ใช้ระบบ damage bypass หรือ TakeDamage ตรง ๆ
             MonsterDamageBypass bypass = target.GetComponent<MonsterDamageBypass>();
             if (bypass != null)
             {
                 bypass.ApplyDirectDamage(damage);
                 if (showDebugLog)
                 {
-                    Debug.Log($"Companion [{logPrefix}]: Direct BYPASS dmg {damage:F1} (no VFX) Lv.{level}");
+                    Debug.Log($"Companion [{logPrefix}]: Direct BYPASS dmg {damage:F1} (no VFX) Lv.{level}, F-Lv.{friendshipLevel}");
                 }
             }
             else
@@ -301,16 +413,19 @@ public class Companion : MonoBehaviour
                 target.TakeDamage(damage);
                 if (showDebugLog)
                 {
-                    Debug.LogWarning($"Companion [{logPrefix}]: Direct TakeDamage {damage:F1} (no VFX, no bypass) Lv.{level}");
+                    Debug.LogWarning($"Companion [{logPrefix}]: Direct TakeDamage {damage:F1} (no VFX, no bypass) Lv.{level}, F-Lv.{friendshipLevel}");
                 }
             }
         }
     }
 
-    #endregion
+    // ======================================================
+    // ANIMATION & SFX HELPERS
+    // ======================================================
 
-    #region Animation & SFX Helpers
-
+    /// <summary>
+    /// เล่นอนิเมชันโจมตีปกติ (ใช้ trigger หรือ state)
+    /// </summary>
     private void PlayAttackAnimation()
     {
         if (animator == null) return;
@@ -325,6 +440,9 @@ public class Companion : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// เล่น state ตรง ๆ ใน Animator ถ้าตั้งชื่อไว้
+    /// </summary>
     private void PlayAnimatorStateIfValid(string stateName)
     {
         if (animator == null) return;
@@ -333,6 +451,9 @@ public class Companion : MonoBehaviour
         animator.Play(stateName, 0, 0f);
     }
 
+    /// <summary>
+    /// เล่นเสียงหนึ่งครั้งด้วย AudioSource.PlayOneShot
+    /// </summary>
     private void PlaySfx(AudioClip clip)
     {
         if (clip == null) return;
@@ -345,10 +466,13 @@ public class Companion : MonoBehaviour
         audioSource.PlayOneShot(clip);
     }
 
-    #endregion
+    // ======================================================
+    // UPGRADE LOGIC (อัปเลเวลเพื่อน)
+    // ======================================================
 
-    #region Upgrade Logic
-
+    /// <summary>
+    /// คืนค่า cost ที่ต้องใช้สำหรับอัปเลเวลครั้งถัดไป
+    /// </summary>
     public int GetNextUpgradeCost()
     {
         if (!CanUpgrade())
@@ -359,11 +483,17 @@ public class Companion : MonoBehaviour
         return Mathf.CeilToInt(cost);
     }
 
+    /// <summary>
+    /// เช็คว่าตอนนี้ยังอัปเลเวลเพื่อนได้ไหม (ถึง maxLevel หรือยัง)
+    /// </summary>
     public bool CanUpgrade()
     {
         return level < maxLevel;
     }
 
+    /// <summary>
+    /// อัปเลเวลเพื่อน 1 เลเวล + อัปเดต speed ยิง
+    /// </summary>
     public void Upgrade()
     {
         if (!CanUpgrade())
@@ -383,10 +513,13 @@ public class Companion : MonoBehaviour
         }
     }
 
-    #endregion
+    // ======================================================
+    // PUBLIC CONTROLS (เปิด/ปิด Companion)
+    // ======================================================
 
-    #region Public Controls
-
+    /// <summary>
+    /// เปิด/ปิด การทำงานของ Companion (เช่น ตอนอยู่ใน cutscene)
+    /// </summary>
     public void SetActive(bool active)
     {
         isActive = active;
@@ -398,6 +531,7 @@ public class Companion : MonoBehaviour
 
         if (!isActive)
         {
+            // ถ้าปิดให้กลับไป Idle
             if (animator != null && !string.IsNullOrEmpty(idleStateName))
             {
                 animator.Play(idleStateName, 0, 0f);
@@ -405,16 +539,18 @@ public class Companion : MonoBehaviour
         }
         else
         {
+            // ถ้าเปิดใหม่ reset timer การยิง
             nextAttackTime = Time.time;
         }
     }
 
-    #endregion
-
-    #region Ultimate Collaboration API
+    // ======================================================
+    // ULT COLLAB (ถูกเรียกตอนผู้เล่นกดอัลติ)
+    // ======================================================
 
     /// <summary>
     /// เรียกจากสคริปต์ UltimateSkill ตอนที่ผู้เล่นกดอัลติ (OnUltStart)
+    /// Companion จะเล่น Timeline + ยิงสกิลแรง ๆ
     /// </summary>
     public void OnPlayerUltStarted()
     {
@@ -425,7 +561,7 @@ public class Companion : MonoBehaviour
         if (target == null || target.currentHealth <= 0f)
             return;
 
-        // เคารพ limit 1% เหมือนเดิม
+        // เคารพ limit % HP เหมือนเดิม
         float maxHP = Mathf.Max(1f, target.maxHealth);
         float hpPercent = target.currentHealth / maxHP;
         if (hpPercent <= minHpPercentToAttack)
@@ -437,21 +573,26 @@ public class Companion : MonoBehaviour
             coopUltTimeline.Play();
         }
 
-        // เล่นแอนิเมชัน / SFX
+        // เล่นอนิเมชัน + เสียง
         PlayAnimatorStateIfValid(ultCoopStateName);
         PlaySfx(ultCoopSfx);
 
-        // ยิง VFX พิเศษ + ดาเมจคูณ
+        // คำนวณดาเมจคูณ ultBonusDamageMultiplier
         float dmg = CalculateDamage() * ultBonusDamageMultiplier;
-
         float travel = ultVfxTravelTime > 0f ? ultVfxTravelTime : vfxTravelTime;
-        SpawnAttackVfx(target, ultCoopVfxPrefab != null ? ultCoopVfxPrefab : attackVfxPrefab,
-            dmg, travel, "UltCollab");
+
+        // ยิง VFX อัลติ ถ้าไม่มีใช้ VFX ปกติแทน
+        SpawnAttackVfx(
+            target,
+            ultCoopVfxPrefab != null ? ultCoopVfxPrefab : attackVfxPrefab,
+            dmg,
+            travel,
+            "UltCollab");
     }
 
-    #endregion
-
-    #region Combo Synergy API
+    // ======================================================
+    // COMBO SYNERGY (เชื่อมกับระบบคอมโบของผู้เล่น)
+    // ======================================================
 
     /// <summary>
     /// ให้ระบบคอมโบเรียกทุกครั้งที่ค่า combo เปลี่ยน
@@ -460,8 +601,10 @@ public class Companion : MonoBehaviour
     public void OnComboChanged(int combo)
     {
         if (!enableComboSynergy) return;
+        if (!isActive) return;
+        if (!gameObject.activeInHierarchy) return;
 
-        // ถ้าคอมโบหลุด รีเซ็ตสถานะการยิงพิเศษ
+        // ถ้าคอมโบหลุด ให้รีเซ็ต flag ว่ายิงพิเศษไปแล้วหรือยัง
         if (combo <= 0)
         {
             heavyShotUsedThisCombo = false;
@@ -481,24 +624,32 @@ public class Companion : MonoBehaviour
         if (hpPercent <= minHpPercentToAttack)
             return;
 
-        // เรียงจากแรงสุดไปอ่อนสุด (จะได้ไม่เผลอใช้ Heavy ก่อนทั้งที่มี Signature)
+        // เช็คจากสกิลแรงสุดไปอ่อนสุด (จะได้ไม่เผลอยิง Heavy ก่อน Signature)
         if (combo >= comboForSignatureShot && !signatureShotUsedThisCombo)
         {
             signatureShotUsedThisCombo = true;
             TriggerComboShot(target, ComboShotType.Signature);
+
+            // ⭐ S Combo → บัดดี้ได้ EXP ชุดใหญ่
+            AddFriendshipExp(expOnSCombo);
         }
         else if (combo >= comboForSuperShot && !superShotUsedThisCombo)
         {
             superShotUsedThisCombo = true;
             TriggerComboShot(target, ComboShotType.Super);
+            AddFriendshipExp(5);
         }
         else if (combo >= comboForHeavyShot && !heavyShotUsedThisCombo)
         {
             heavyShotUsedThisCombo = true;
             TriggerComboShot(target, ComboShotType.Heavy);
+            AddFriendshipExp(3);
         }
     }
 
+    /// <summary>
+    /// ยิงสกิลคอมโบ (Heavy / Super / Signature) พร้อมอนิเมชัน + SFX + VFX
+    /// </summary>
     private void TriggerComboShot(Monster target, ComboShotType type)
     {
         if (target == null || target.currentHealth <= 0f)
@@ -541,20 +692,86 @@ public class Companion : MonoBehaviour
 
         float dmg = baseDmg * multiplier;
 
-        // เล่นอนิเมชัน + SFX
+        // เล่นอนิเมชัน + เสียง
         PlayAnimatorStateIfValid(animState);
         PlaySfx(sfx);
 
-        // ยิง VFX พิเศษ
+        // Spawn VFX ตามประเภท
         SpawnAttackVfx(target, prefab, dmg, vfxTravelTime, logPrefix);
     }
 
-    #endregion
-
-    #region Emotion Helpers (ใช้ในอนาคตได้)
+    // ======================================================
+    // FRIENDSHIP LOGIC + UI (เพิ่ม Exp + อัปเดต UI)
+    // ======================================================
 
     /// <summary>
-    /// เรียกเวลา player ทำอะไรเท่ ๆ เช่น ติดคริต่อเนื่อง
+    /// เพิ่ม Exp ความสนิท (เรียกตอนฆ่าบอส, คอมโบใหญ่, เควสเสร็จ ฯลฯ)
+    /// แล้วเช็คว่าขึ้นเลเวลหรือยัง + อัปเดต UI
+    /// </summary>
+    public void AddFriendshipExp(int amount)
+    {
+        // ถ้าเพื่อนตัวนี้ไม่ active (ปิดผ่าน SetActive() หรือ gameObject ปิดใน hierarchy)
+        // จะไม่รับ EXP และไม่เลเวลอัป
+        if (!isActive) return;
+        if (!gameObject.activeInHierarchy) return;
+
+        if (amount <= 0) return;
+        if (friendshipLevel >= maxFriendshipLevel) return;
+
+        currentFriendshipExp += amount;
+
+        bool leveledUp = false;
+
+        // ถ้า Exp เกิน ให้เลื่อนเลเวลขึ้นได้หลาย Lv ต่อเนื่องถ้าพอ
+        while (currentFriendshipExp >= expPerLevel && friendshipLevel < maxFriendshipLevel)
+        {
+            currentFriendshipExp -= expPerLevel;
+            friendshipLevel++;
+            leveledUp = true;
+        }
+
+        if (leveledUp && showDebugLog)
+        {
+            Debug.Log($"[{friendName}] Friendship Level Up! Lv.{friendshipLevel}");
+        }
+
+        UpdateFriendshipUI();
+    }
+
+    /// <summary>
+    /// อัปเดต UI ของความสนิท (ชื่อ, Lv, และ Slider Exp)
+    /// </summary>
+    private void UpdateFriendshipUI()
+    {
+        if (friendshipNameText != null)
+            friendshipNameText.text = friendName;
+
+        if (friendshipLevelText != null)
+            friendshipLevelText.text = $"Lv.{friendshipLevel}";
+
+        if (friendshipExpSlider != null)
+        {
+            friendshipExpSlider.minValue = 0;
+            friendshipExpSlider.maxValue = expPerLevel;
+            friendshipExpSlider.value = Mathf.Clamp(currentFriendshipExp, 0, expPerLevel);
+        }
+    }
+
+    /// <summary>
+    /// เรียกตอนฆ่ามอน 1 ตัว เพื่อให้บัดดี้ได้ EXP
+    /// (ให้ GameManager หรือ Monster เรียกฟังก์ชันนี้)
+    /// </summary>
+    public void OnMonsterKilled()
+    {
+        AddFriendshipExp(expOnMonsterKill);
+    }
+
+    // ======================================================
+    // EMOTION HELPERS (ไว้เรียกจากเหตุการณ์ต่าง ๆ)
+    // ======================================================
+
+    /// <summary>
+    /// ใช้ตอนผู้เล่นทำอะไรเท่ ๆ เช่น คอมโบต่อเนื่อง, ชนะบอส
     /// </summary>
     public void ReactHappy()
     {
@@ -562,12 +779,10 @@ public class Companion : MonoBehaviour
     }
 
     /// <summary>
-    /// เรียกตอน Boss เข้า Break, Companion บ้าพลัง
+    /// ใช้ตอน Boss เข้า Break แล้วให้เพื่อนบ้าพลัง
     /// </summary>
     public void EnterBerserkMode()
     {
         PlayAnimatorStateIfValid(berserkStateName);
     }
-
-    #endregion
 }
