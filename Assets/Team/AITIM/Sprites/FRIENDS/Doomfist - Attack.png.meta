@@ -1,10 +1,13 @@
 fileFormatVersion: 2
-guid: bff693b0fe532f0438671fd8f531d8b9
+guid: f44dc5846e50d884b95401eeb397ad90
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 5459907113019368579
-    second: RedEyeAnimation_0
+      213: 1816966733413027857
+    second: Doomfist - Attack_0
+  - first:
+      213: -4117736049932277372
+    second: Doomfist - Attack_1
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -100,13 +103,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: RedEyeAnimation_0
+      name: Doomfist - Attack_0
       rect:
         serializedVersion: 2
         x: 0
         y: 0
-        width: 15
-        height: 8
+        width: 23
+        height: 39
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -115,20 +118,42 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 384e52a679c75cb40800000000000000
-      internalID: 5459907113019368579
+      spriteID: 11019c90e99273910800000000000000
+      internalID: 1816966733413027857
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: RedEyeAnimation_1
+      name: Doomfist - Attack_1
       rect:
         serializedVersion: 2
-        x: 15
+        x: 23
         y: 0
-        width: 15
-        height: 8
+        width: 23
+        height: 39
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 48967f811ecdad6c0800000000000000
+      internalID: -4117736049932277372
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Doomfist - Attack_2
+      rect:
+        serializedVersion: 2
+        x: 46
+        y: 0
+        width: 23
+        height: 39
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -137,30 +162,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 90aac136ff6766f479d413eedb18bc6a
-      internalID: 1277895724
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: RedEyeAnimation_2
-      rect:
-        serializedVersion: 2
-        x: 30
-        y: 0
-        width: 15
-        height: 8
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: 6c69fbc49967f4740a9ad2038cd52624
-      internalID: 465825351
+      spriteID: 8664ce2bf3007fb4d87fceb23c5baccc
+      internalID: -1264308083
       vertices: []
       indices: 
       edges: []
@@ -169,7 +172,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 2857ae5c826bb7a42bae6a79d187b28b
+    spriteID: bb595f07478c55741a104a49a28f49d7
     internalID: 0
     vertices: []
     indices: 
@@ -179,9 +182,9 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      RedEyeAnimation_0: 5459907113019368579
-      RedEyeAnimation_1: 1277895724
-      RedEyeAnimation_2: 465825351
+      Doomfist - Attack_0: 1816966733413027857
+      Doomfist - Attack_1: -4117736049932277372
+      Doomfist - Attack_2: -1264308083
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
